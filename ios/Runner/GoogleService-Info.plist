@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>702290934781-fseffh06akie45mtfu3t4vep139iapae.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.702290934781-fseffh06akie45mtfu3t4vep139iapae</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>702290934781-evp630vjj3qqpkn2j6hgnihoinm1m2c9.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyB5tHfgDT1LSwLVK7ShhnptVNxT102DBhg</string>
+	<key>GCM_SENDER_ID</key>
+	<string>702290934781</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.mavericktree.mavericktrials</string>
+	<key>PROJECT_ID</key>
+	<string>mavericktrials-43676</string>
+	<key>STORAGE_BUCKET</key>
+	<string>mavericktrials-43676.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:702290934781:ios:7471ff9b439db0e5d6b794</string>
+	<key>DATABASE_URL</key>
+	<string>https://mavericktrials-43676.firebaseio.com</string>
+</dict>
+</plist>

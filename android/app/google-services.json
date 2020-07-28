@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "702290934781",
+    "firebase_url": "https://mavericktrials-43676.firebaseio.com",
+    "project_id": "mavericktrials-43676",
+    "storage_bucket": "mavericktrials-43676.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:702290934781:android:58eaeac3741976c4d6b794",
+        "android_client_info": {
+          "package_name": "com.mavericktree.maverick_trials"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "702290934781-7l5ltpceeqjug95rlaahkv1isikt1f2b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzAj7LcA0OAWOIanmvnbggDM6HscE088k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "702290934781-7l5ltpceeqjug95rlaahkv1isikt1f2b.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "702290934781-fseffh06akie45mtfu3t4vep139iapae.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.mavericktree.mavericktrials"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
