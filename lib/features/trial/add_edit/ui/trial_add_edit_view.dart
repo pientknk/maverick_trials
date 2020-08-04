@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/trial.dart';
+import 'package:maverick_trials/core/repository/trial_repository.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_bloc.dart';
-import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_state.dart';
 import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_form.dart';
-import 'package:maverick_trials/ui/shared/loading_view.dart';
 
 class TrialAddEditView extends StatefulWidget {
   final Trial trial;
@@ -18,37 +17,24 @@ class TrialAddEditView extends StatefulWidget {
 class _TrialAddEditViewState extends State<TrialAddEditView> {
   @override
   Widget build(BuildContext context) {
+    final TrialRepository trialRepository = TrialRepository();
+
     return Scaffold(
       appBar: _buildAppBar(),
-      body: _buildBlocBuilder(),
-    );
-  }
-
-  BlocBuilder _buildBlocBuilder() {
-    return BlocBuilder(
-      bloc: BlocProvider.of<TrialAddEditBloc>(context),
-      builder: (context, state) {
-        return Stack(
-          children: <Widget>[
-            Container(
-              child: TrialAddEditForm(trial: widget.trial),
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Visibility(
-                child: LoadingView(),
-                visible: state is StateLoading,
-              ),
-            )
-          ],
-        );
-      },
+      body: BlocProvider<TrialAddEditBloc>(
+        create: (BuildContext context){
+          return TrialAddEditBloc(
+            trialRepository: trialRepository,
+          );
+        },
+        child: TrialAddEditForm(trial: widget.trial),
+      ),
     );
   }
 
   AppBar _buildAppBar() {
     return AppBar(
-      title: Text(widget.trial.name == null ? 'Trial Add' : 'Trial Details'),
+      title: Text(widget.trial == null ? 'Trial Add' : 'Trial Details'),
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back,

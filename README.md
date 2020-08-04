@@ -1,10 +1,8 @@
 # maverick_trials
 
-An app for creating fun games and competing with friends
+An app for creating fun trials and competing with friends.
 
 ## Getting Started
-
-This project is a starting point for a Flutter application.
 
 A few resources to get you started if this is your first Flutter project:
 

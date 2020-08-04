@@ -4,11 +4,15 @@ import 'package:maverick_trials/core/models/trial.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_bloc.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_event.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_state.dart';
+import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
+import 'package:maverick_trials/ui/widgets/app_buttons.dart';
+
 
 class TrialAddEditForm extends StatefulWidget {
   final Trial trial;
 
-  TrialAddEditForm({@required this.trial});
+  TrialAddEditForm({Key key, @required this.trial})
+    : super(key: key);
 
   @override
   _TrialAddEditFormState createState() => _TrialAddEditFormState();
@@ -17,18 +21,11 @@ class TrialAddEditForm extends StatefulWidget {
 class _TrialAddEditFormState extends State<TrialAddEditForm> {
   TrialAddEditBloc _trialAddEditBloc;
 
-  int _currentStep = 0;
-
   final List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
     GlobalKey<FormState>(),
     GlobalKey<FormState>(),
-  ];
-
-  final List<bool> validSteps = [
-    true,
-    true,
-    true,
+    GlobalKey<FormState>(),
   ];
 
   @override
@@ -38,30 +35,199 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
   }
 
   @override
+  void dispose() {
+    _trialAddEditBloc.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    List<Step> steps = [
-      Step(
-          title: Text("Step 1"),
-          isActive: true,
-          state: (_currentStep == 0) ? StepState.editing : StepState.complete,
-          content: Form(
-            key: _formKeys[0],
-            child: Column(
-              children: <Widget>[
-                _nameFormField(),
-                _descriptionFormField(),
-                _trialTypeDropDownFormField(),
-              ],
+    return BlocListener<TrialAddEditBloc, TrialAddEditState>(
+      bloc: _trialAddEditBloc,
+      listener: (context, state) {
+        if(state is StateLoading){
+          Scaffold.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    BasicProgressIndicator(),
+                    Text('Loading Form...'),
+                  ],
+                ),
+                duration: Duration(seconds: 2),
+              ),
+            );
+        }
+
+        if (state is AddTrialStateSuccess || state is EditTrialStateSuccess) {
+          Navigator.pop(context);
+        }
+      },
+      child: BlocBuilder<TrialAddEditBloc, TrialAddEditState>(
+        builder: (BuildContext context, TrialAddEditState state){
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Expanded(
+                flex: 10,
+                child: _buildTrialStepper()
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                    color: Colors.transparent,
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                            child: StreamBuilder<bool>(
+                              stream: _trialAddEditBloc.canSubmit,
+                              builder: (context, snapshot) {
+                                return AppIconButton(
+                                  text: Text("Create"),
+                                  color: Colors.grey[300],
+                                  icon: Icon(Icons.add),
+                                  onPressed: (snapshot.hasData && snapshot.data == true)
+                                    ? () {
+                                    _trialAddEditBloc.add(widget.trial == null
+                                      ? AddTrialEvent(trial: widget.trial)
+                                      : EditTrialEvent(trial: widget.trial));
+                                  }
+                                    : null,
+                                );
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _nextButton(VoidCallback onStepContinue){
+    FlatButton nextButton = FlatButton(
+      onPressed: onStepContinue,
+      child: Text('NEXT',
+        style: Theme.of(context).accentTextTheme.button,
+      ),
+      color: Theme.of(context).primaryColor,
+    );
+
+    if(_trialAddEditBloc.stepperIndex == 0){
+      return StreamBuilder<bool>(
+        stream: _trialAddEditBloc.stepOneValid,
+        builder: (context, snapshot) {
+          return FlatButton(
+            onPressed: (snapshot.hasData && snapshot.data == true)
+              ? onStepContinue
+              : (){
+                _trialAddEditBloc.validateFormKey(0);
+              },
+            child: Text('NEXT',
+              style: Theme.of(context).accentTextTheme.button,
             ),
-          )),
+            color: Theme.of(context).primaryColor,
+            //disabledColor: Theme.of(context).disabledColor,
+          );
+        }
+      );
+    }
+    else if(_trialAddEditBloc.stepperIndex == 1){
+      return StreamBuilder<bool>(
+        stream: _trialAddEditBloc.stepTwoValid,
+        builder: (context, snapshot) {
+          return FlatButton(
+            onPressed: onStepContinue,
+            child: Text('NEXT',
+              style: Theme.of(context).accentTextTheme.button,
+            ),
+            color: Theme.of(context).primaryColor,
+          );
+        }
+      );
+    }
+    else{
+      return nextButton;
+    }
+  }
+
+  Widget _stepperNextOptionOnly(VoidCallback onStepContinue){
+    return Row(
+      children: <Widget>[
+        _nextButton(onStepContinue),
+      ],
+    );
+  }
+
+  Widget _stepperBothOptions(VoidCallback onStepContinue, VoidCallback onStepCancel) {
+    return Row(
+      children: <Widget>[
+        _nextButton(onStepContinue),
+        FlatButton(
+          onPressed: onStepCancel,
+          child: Text('BACK'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTrialStepper(){
+    List<Step> steps = _buildTrialSteps();
+
+    return Stepper(
+      controlsBuilder: (BuildContext context,
+        {VoidCallback onStepContinue, VoidCallback onStepCancel}) {
+        if(_trialAddEditBloc.stepperIndex == 0){
+          return _stepperNextOptionOnly(onStepContinue);
+        }
+        else if(_trialAddEditBloc.stepperIndex != steps.length - 1){
+          return _stepperBothOptions(onStepContinue, onStepCancel);
+        }
+        else{
+          return Container();
+        }
+      },
+      type: StepperType.vertical,
+      steps: steps,
+      currentStep: _trialAddEditBloc.stepperIndex,
+      onStepContinue: () => _trialAddEditBloc.add(StepContinueEvent(stepCount: steps.length)),
+      onStepCancel: () => _trialAddEditBloc.add(StepCancelEvent()),
+      onStepTapped: (step) => _trialAddEditBloc.add(StepTappedEvent(stepIndex: step)),
+    );
+  }
+
+  List<Step> _buildTrialSteps(){
+    return [
       Step(
-        title: Text("Step 2"),
+        title: Text("Name, Description, and Trial Type"),
         isActive: true,
-        state: _currentStep < 1
-            ? StepState.disabled
-            : _currentStep == 1 ? StepState.editing : StepState.complete,
+        state: (_trialAddEditBloc.stepperIndex == 0) ? StepState.editing : StepState.complete,
         content: Form(
-          key: _formKeys[1],
+          key: _trialAddEditBloc.formKeys[0],
+          child: Column(
+            children: <Widget>[
+              _nameFormField(),
+              _descriptionFormField(),
+              _trialTypeDropDownFormField(),
+            ],
+          ),
+        )
+      ),
+      Step(
+        title: Text("Win Condition and Rules"),
+        isActive: true,
+        state: _trialAddEditBloc.stepperIndex < 1
+          ? StepState.disabled
+          : _trialAddEditBloc.stepperIndex == 1 ? StepState.editing : StepState.complete,
+        content: Form(
+          key: _trialAddEditBloc.formKeys[1],
           child: Column(
             children: <Widget>[
               _winConditionFormField(),
@@ -71,13 +237,13 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
         ),
       ),
       Step(
-        title: Text("Step 3"),
+        title: Text("Tie Breaker and Requirements"),
         isActive: true,
-        state: _currentStep < 2
-            ? StepState.disabled
-            : _currentStep == 2 ? StepState.editing : StepState.complete,
+        state: _trialAddEditBloc.stepperIndex < 2
+          ? StepState.disabled
+          : _trialAddEditBloc.stepperIndex == 2 ? StepState.editing : StepState.complete,
         content: Form(
-          key: _formKeys[2],
+          key: _trialAddEditBloc.formKeys[2],
           child: Column(
             children: <Widget>[
               _tieBreakerFormField(),
@@ -86,88 +252,17 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
           ),
         ),
       ),
-    ];
-
-    return BlocListener<TrialAddEditBloc, TrialAddEditState>(
-      bloc: _trialAddEditBloc,
-      listener: (context, state) {
-        if (state is AddTrialStateSuccess || state is EditTrialStateSuccess) {
-          Navigator.pop(context);
-        }
-      },
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: Stepper(
-              type: StepperType.vertical,
-              steps: steps,
-              currentStep: _currentStep,
-              onStepContinue: () {
-                onStepContinue(steps.length);
-              },
-              onStepCancel: onStepCancel,
-              onStepTapped: (step) => onStepTapped,
-            ),
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: StreamBuilder<bool>(
-                      stream: _trialAddEditBloc.canSubmit,
-                      builder:
-                          (BuildContext context, AsyncSnapshot<bool> snapshot) {
-                        return RaisedButton(
-                          child: Text('Submit'),
-                          onPressed: (snapshot.hasData && snapshot.data == true)
-                              ? () {
-                                  // submit process and navigate back to list
-                                  _trialAddEditBloc.add(widget.trial == null
-                                      ? AddTrialEvent(trial: widget.trial)
-                                      : EditTrialEvent(trial: widget.trial));
-                                }
-                              // null will disable the button
-                              : null,
-                        );
-                      }),
-                ),
-              ),
-            ],
-          )
-        ],
+      Step(
+        title: Text("Done"),
+        isActive: true,
+        state: _trialAddEditBloc.stepperIndex == 3
+          ? StepState.complete : StepState.editing,
+        content: Form(
+          key: _trialAddEditBloc.formKeys[3],
+          child: Container()
+        ),
       ),
-    );
-  }
-
-  void onStepContinue(int length) {
-    setState(() {
-      if (_currentStep == length - 1) {
-        //_complete = true;
-      } else {
-        if (_formKeys[_currentStep].currentState.validate()) {
-          _formKeys[_currentStep].currentState.save();
-          validSteps[_currentStep] = true;
-          _currentStep += 1;
-        } else {
-          validSteps[_currentStep] = false;
-        }
-      }
-    });
-  }
-
-  void onStepCancel() {
-    if (_currentStep != 0) {
-      setState(() {
-        _currentStep -= 1;
-      });
-    }
-  }
-
-  void onStepTapped(int step) {
-    setState(() {
-      _currentStep = step;
-    });
+    ];
   }
 
   Widget _trialTypeDropDownFormField() {
@@ -240,9 +335,10 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
         return TextFormField(
           maxLines: null,
           decoration: InputDecoration(
-            labelText: 'Win Condition *',
+            labelText: 'Win Condition*',
             hintText: 'How is the winner determined?',
             errorText: snapshot.error,
+            helperText: '*Required'
           ),
           onChanged: _trialAddEditBloc.onWinCondChanged,
           validator: _trialAddEditBloc.validateRequiredField,
@@ -275,9 +371,10 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
         return TextFormField(
           maxLines: null,
           decoration: InputDecoration(
-            labelText: 'Description *',
+            labelText: 'Description*',
             hintText: 'Describe what this trial is',
             errorText: snapshot.error,
+            helperText: '*Required',
           ),
           onChanged: _trialAddEditBloc.onDescriptionChanged,
           validator: _trialAddEditBloc.validateRequiredField,
@@ -293,9 +390,10 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
       builder: (context, snapshot) {
         return TextFormField(
           decoration: InputDecoration(
-            labelText: 'Name *',
+            labelText: 'Name*',
             hintText: 'Name it something fun and distinct',
             errorText: snapshot.error,
+            helperText: '*Required',
           ),
           onChanged: _trialAddEditBloc.onNameChanged,
           validator: _trialAddEditBloc.validateRequiredField,

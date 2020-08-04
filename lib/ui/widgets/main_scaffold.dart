@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth.dart';
+import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_view.dart';
 import 'package:maverick_trials/ui/shared/app_drawer.dart';
 import 'package:maverick_trials/ui/shared/app_fab.dart';
 import 'package:maverick_trials/ui/views/explore_tab_view.dart';
@@ -89,10 +90,11 @@ class _MainScaffoldState extends State<MainScaffold>
             heroTag: 'HomeTrialAdd',
             onPressed: () {
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TrialAddView(),
-                  ));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TrialAddEditView(trial: null),
+                )
+              );
             },
             tooltip: 'Add Trial',
             child: Stack(

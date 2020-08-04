@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class AppIconButton extends StatelessWidget {
   final VoidCallback onPressed;
-  final String text;
-  final Icon icon;
+  final Text text;
+  final Widget icon;
   final Color color;
 
   AppIconButton({
@@ -17,6 +17,7 @@ class AppIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: Colors.transparent,
       margin: const EdgeInsets.symmetric(horizontal: 8),
       child: SizedBox(
         width: double.infinity,
@@ -25,7 +26,7 @@ class AppIconButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(30.0),
           ),
           onPressed: onPressed,
-          label: Text(text),
+          label: text,
           icon: icon,
           color: color,
         ),
