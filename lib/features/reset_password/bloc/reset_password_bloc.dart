@@ -37,7 +37,6 @@ class ResetPasswordBloc extends Bloc<ResetPasswordEvent, ResetPasswordState>
   }
 
   @override
-  // TODO: implement initialState
   ResetPasswordState get initialState => ResetPasswordState.initial();
 
   @override

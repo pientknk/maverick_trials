@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/widgets/trial_list_view.dart';
+import 'package:maverick_trials/features/trial/list/ui/trial_list_view.dart';
 
 class HomeTabView extends StatefulWidget {
   HomeTabView(this.index, {Key key}) : super(key: key);
@@ -19,8 +19,12 @@ class _HomeTabViewState extends State<HomeTabView> {
         break;
       case 1:
         //TODO: after Trial is done, work on game
-        return Center(
-          child: Text("No Data Found"),
+        return SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              Center(child: Text('Testing out widgets and theme here'),)
+            ],
+          ),
         );
         break;
       default:

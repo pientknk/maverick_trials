@@ -6,13 +6,12 @@ import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_even
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_state.dart';
 import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 import 'package:maverick_trials/ui/widgets/app_buttons.dart';
-
+import 'package:maverick_trials/ui/widgets/app_text_fields.dart';
 
 class TrialAddEditForm extends StatefulWidget {
   final Trial trial;
 
-  TrialAddEditForm({Key key, @required this.trial})
-    : super(key: key);
+  TrialAddEditForm({Key key, @required this.trial}) : super(key: key);
 
   @override
   _TrialAddEditFormState createState() => _TrialAddEditFormState();
@@ -20,23 +19,36 @@ class TrialAddEditForm extends StatefulWidget {
 
 class _TrialAddEditFormState extends State<TrialAddEditForm> {
   TrialAddEditBloc _trialAddEditBloc;
-
-  final List<GlobalKey<FormState>> _formKeys = [
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-  ];
+  FocusNode nameNode;
+  FocusNode descriptionNode;
+  FocusNode winCondNode;
+  FocusNode rulesNode;
+  FocusNode tiebreakerNode;
+  FocusNode requirementsNode;
 
   @override
   void initState() {
     _trialAddEditBloc = BlocProvider.of<TrialAddEditBloc>(context);
+    nameNode = FocusNode();
+    descriptionNode = FocusNode();
+    winCondNode = FocusNode();
+    rulesNode = FocusNode();
+    tiebreakerNode = FocusNode();
+    requirementsNode = FocusNode();
+
     super.initState();
   }
 
   @override
   void dispose() {
     _trialAddEditBloc.close();
+    nameNode.dispose();
+    descriptionNode.dispose();
+    winCondNode.dispose();
+    rulesNode.dispose();
+    tiebreakerNode.dispose();
+    requirementsNode.dispose();
+
     super.dispose();
   }
 
@@ -45,7 +57,7 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
     return BlocListener<TrialAddEditBloc, TrialAddEditState>(
       bloc: _trialAddEditBloc,
       listener: (context, state) {
-        if(state is StateLoading){
+        if (state is StateLoading) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -62,343 +74,223 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
             );
         }
 
+        if (state is StateSaving) {
+          Scaffold.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    BasicProgressIndicator(),
+                    Text('Saving Trial...'),
+                  ],
+                ),
+                duration: Duration(seconds: 2),
+              ),
+            );
+        }
+
         if (state is AddTrialStateSuccess || state is EditTrialStateSuccess) {
+          Scaffold.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Icon(Icons.check_circle),
+                    Text('Saved Successfully'),
+                  ],
+                ),
+                duration: Duration(seconds: 2),
+              ),
+            );
           Navigator.pop(context);
+        }
+
+        if (state is FailureState) {
+          Scaffold.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Icon(Icons.error),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Text(state.error),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+              ),
+            );
         }
       },
       child: BlocBuilder<TrialAddEditBloc, TrialAddEditState>(
-        builder: (BuildContext context, TrialAddEditState state){
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              Expanded(
-                flex: 10,
-                child: _buildTrialStepper()
-              ),
-              Expanded(
-                flex: 1,
-                child: Container(
-                    color: Colors.transparent,
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                            child: StreamBuilder<bool>(
-                              stream: _trialAddEditBloc.canSubmit,
-                              builder: (context, snapshot) {
-                                return AppIconButton(
-                                  text: Text("Create"),
-                                  color: Colors.grey[300],
-                                  icon: Icon(Icons.add),
-                                  onPressed: (snapshot.hasData && snapshot.data == true)
-                                    ? () {
-                                    _trialAddEditBloc.add(widget.trial == null
-                                      ? AddTrialEvent(trial: widget.trial)
-                                      : EditTrialEvent(trial: widget.trial));
-                                  }
-                                    : null,
-                                );
-                              },
-                            ),
-                          ),
-                      ],
+        builder: (BuildContext context, TrialAddEditState state) {
+          return Form(
+            key: _trialAddEditBloc.formKey,
+            child: Column(
+              children: <Widget>[
+                Expanded(
+                  child: Scrollbar(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        children: _buildForm(),
+                      ),
                     ),
+                  ),
                 ),
-              ),
-            ],
+                Container(
+                  child: widget.trial == null ? createButton() : updateButton(),
+                ),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _nextButton(VoidCallback onStepContinue){
-    FlatButton nextButton = FlatButton(
-      onPressed: onStepContinue,
-      child: Text('NEXT',
-        style: Theme.of(context).accentTextTheme.button,
-      ),
-      color: Theme.of(context).primaryColor,
-    );
-
-    if(_trialAddEditBloc.stepperIndex == 0){
-      return StreamBuilder<bool>(
-        stream: _trialAddEditBloc.stepOneValid,
-        builder: (context, snapshot) {
-          return FlatButton(
-            onPressed: (snapshot.hasData && snapshot.data == true)
-              ? onStepContinue
-              : (){
-                _trialAddEditBloc.validateFormKey(0);
-              },
-            child: Text('NEXT',
-              style: Theme.of(context).accentTextTheme.button,
-            ),
-            color: Theme.of(context).primaryColor,
-            //disabledColor: Theme.of(context).disabledColor,
-          );
-        }
-      );
-    }
-    else if(_trialAddEditBloc.stepperIndex == 1){
-      return StreamBuilder<bool>(
-        stream: _trialAddEditBloc.stepTwoValid,
-        builder: (context, snapshot) {
-          return FlatButton(
-            onPressed: onStepContinue,
-            child: Text('NEXT',
-              style: Theme.of(context).accentTextTheme.button,
-            ),
-            color: Theme.of(context).primaryColor,
-          );
-        }
-      );
-    }
-    else{
-      return nextButton;
-    }
-  }
-
-  Widget _stepperNextOptionOnly(VoidCallback onStepContinue){
-    return Row(
-      children: <Widget>[
-        _nextButton(onStepContinue),
-      ],
-    );
-  }
-
-  Widget _stepperBothOptions(VoidCallback onStepContinue, VoidCallback onStepCancel) {
-    return Row(
-      children: <Widget>[
-        _nextButton(onStepContinue),
-        FlatButton(
-          onPressed: onStepCancel,
-          child: Text('BACK'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTrialStepper(){
-    List<Step> steps = _buildTrialSteps();
-
-    return Stepper(
-      controlsBuilder: (BuildContext context,
-        {VoidCallback onStepContinue, VoidCallback onStepCancel}) {
-        if(_trialAddEditBloc.stepperIndex == 0){
-          return _stepperNextOptionOnly(onStepContinue);
-        }
-        else if(_trialAddEditBloc.stepperIndex != steps.length - 1){
-          return _stepperBothOptions(onStepContinue, onStepCancel);
-        }
-        else{
-          return Container();
-        }
+  Widget createButton() {
+    return StreamBuilder<bool>(
+      stream: _trialAddEditBloc.canSubmit,
+      builder: (context, snapshot) {
+        return AppIconButton(
+          text: Text('Create'),
+          color: Colors.grey[300],
+          icon: Icon(Icons.add),
+          onPressed: (snapshot.hasData && snapshot.data == true)
+              ? () {
+                  _trialAddEditBloc.add(AddTrialEvent(trial: widget.trial));
+                }
+              : null,
+        );
       },
-      type: StepperType.vertical,
-      steps: steps,
-      currentStep: _trialAddEditBloc.stepperIndex,
-      onStepContinue: () => _trialAddEditBloc.add(StepContinueEvent(stepCount: steps.length)),
-      onStepCancel: () => _trialAddEditBloc.add(StepCancelEvent()),
-      onStepTapped: (step) => _trialAddEditBloc.add(StepTappedEvent(stepIndex: step)),
     );
   }
 
-  List<Step> _buildTrialSteps(){
+  Widget updateButton() {
+    return AppIconButton(
+      text: Text('Update'),
+      color: Theme.of(context).primaryColor,
+      icon: Icon(Icons.save),
+      onPressed: () {
+        _trialAddEditBloc.add(EditTrialEvent(trial: widget.trial));
+      },
+    );
+  }
+
+  List<Widget> _buildForm() {
     return [
-      Step(
-        title: Text("Name, Description, and Trial Type"),
-        isActive: true,
-        state: (_trialAddEditBloc.stepperIndex == 0) ? StepState.editing : StepState.complete,
-        content: Form(
-          key: _trialAddEditBloc.formKeys[0],
-          child: Column(
-            children: <Widget>[
-              _nameFormField(),
-              _descriptionFormField(),
-              _trialTypeDropDownFormField(),
-            ],
-          ),
-        )
-      ),
-      Step(
-        title: Text("Win Condition and Rules"),
-        isActive: true,
-        state: _trialAddEditBloc.stepperIndex < 1
-          ? StepState.disabled
-          : _trialAddEditBloc.stepperIndex == 1 ? StepState.editing : StepState.complete,
-        content: Form(
-          key: _trialAddEditBloc.formKeys[1],
-          child: Column(
-            children: <Widget>[
-              _winConditionFormField(),
-              _rulesTextFormField(),
-            ],
-          ),
-        ),
-      ),
-      Step(
-        title: Text("Tie Breaker and Requirements"),
-        isActive: true,
-        state: _trialAddEditBloc.stepperIndex < 2
-          ? StepState.disabled
-          : _trialAddEditBloc.stepperIndex == 2 ? StepState.editing : StepState.complete,
-        content: Form(
-          key: _trialAddEditBloc.formKeys[2],
-          child: Column(
-            children: <Widget>[
-              _tieBreakerFormField(),
-              _requirementsFormField(),
-            ],
-          ),
-        ),
-      ),
-      Step(
-        title: Text("Done"),
-        isActive: true,
-        state: _trialAddEditBloc.stepperIndex == 3
-          ? StepState.complete : StepState.editing,
-        content: Form(
-          key: _trialAddEditBloc.formKeys[3],
-          child: Container()
-        ),
-      ),
+      _nameFormField(),
+      _descriptionFormField(),
+      _winConditionFormField(),
+      _trialTypeDropDownFormField(),
+      _rulesTextFormField(),
+      _tieBreakerFormField(),
+      _requirementsFormField(),
     ];
   }
 
   Widget _trialTypeDropDownFormField() {
-    return StreamBuilder<String>(
+    return BasicStreamDropDownFormField(
       stream: _trialAddEditBloc.trialType,
-      builder: (context, snapshot) {
-        return Container(
-          child: Center(
-              child: snapshot.hasData
-                  ? DropdownButtonFormField<String>(
-                      value: snapshot.data,
-                      decoration: InputDecoration(
-                        labelText: 'Trial Type',
-                        hintText: 'Choose a Trial Type',
-                      ),
-                      items: _trialAddEditBloc.trialTypeOptions
-                          .map((value) => DropdownMenuItem(
-                                child: Text(value),
-                                value: value,
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        _trialAddEditBloc.onTrialTypeChanged;
-                      },
-                    )
-                  : CircularProgressIndicator()),
-        );
-      },
+      labelText: Trial.friendlyFieldNames[TrialFields.trialType],
+      hintText: 'Choose a Trial Type',
+      menuItems: _trialAddEditBloc.trialTypeOptions
+          .map((value) => DropdownMenuItem(
+                child: Text(value),
+                value: value,
+              ))
+          .toList(),
+      onChanged: _trialAddEditBloc.onTrialTypeChanged,
     );
   }
 
   Widget _requirementsFormField() {
-    return StreamBuilder<String>(
+    return BasicStreamTextFormField(
       stream: _trialAddEditBloc.requirements,
-      builder: (context, snapshot) {
-        return TextFormField(
-          maxLines: null,
-          decoration: InputDecoration(
-            labelText: 'Requirements',
-            hintText: 'Objects or environment required to play',
-            errorText: snapshot.error,
-          ),
-          onChanged: _trialAddEditBloc.onRequirementsChanged,
-        );
-      },
+      initialValue: widget.trial?.requirements,
+      labelText: Trial.friendlyFieldNames[TrialFields.requirements],
+      hintText: 'Objects or environment required to play',
+      onChanged: _trialAddEditBloc.onRequirementsChanged,
+      textInputAction: TextInputAction.done,
+      currentFocusNode: requirementsNode,
     );
   }
 
   Widget _tieBreakerFormField() {
-    return StreamBuilder<String>(
+    return BasicStreamTextFormField(
       stream: _trialAddEditBloc.tieBreaker,
-      builder: (context, snapshot) {
-        return TextFormField(
-          maxLines: null,
-          decoration: InputDecoration(
-            labelText: 'Tie Breaker',
-            hintText: 'Trial boss can decide or?',
-            errorText: snapshot.error,
-          ),
-          onChanged: _trialAddEditBloc.onTieBreakerChanged,
-        );
-      },
+      initialValue: widget.trial?.tieBreaker,
+      labelText: Trial.friendlyFieldNames[TrialFields.tieBreaker],
+      hintText: 'Trial boss can decide this',
+      onChanged: _trialAddEditBloc.onTieBreakerChanged,
+      textInputAction: TextInputAction.next,
+      currentFocusNode: tiebreakerNode,
+      nextFocusNode: requirementsNode,
     );
   }
 
   Widget _winConditionFormField() {
-    return StreamBuilder<String>(
+    return BasicStreamTextFormField(
       stream: _trialAddEditBloc.winCondition,
-      builder: (context, snapshot) {
-        return TextFormField(
-          maxLines: null,
-          decoration: InputDecoration(
-            labelText: 'Win Condition*',
-            hintText: 'How is the winner determined?',
-            errorText: snapshot.error,
-            helperText: '*Required'
-          ),
-          onChanged: _trialAddEditBloc.onWinCondChanged,
-          validator: _trialAddEditBloc.validateRequiredField,
-        );
-      },
+      initialValue: widget.trial?.winCondition,
+      labelText: Trial.friendlyFieldNames[TrialFields.winCondition],
+      hintText: 'How is the winner determined?',
+      requiredField: true,
+      onChanged: _trialAddEditBloc.onWinCondChanged,
+      textInputAction: TextInputAction.done,
+      currentFocusNode: winCondNode,
     );
   }
 
   Widget _rulesTextFormField() {
-    return StreamBuilder<String>(
+    return BasicStreamTextFormField(
       stream: _trialAddEditBloc.rules,
-      builder: (context, snapshot) {
-        return TextFormField(
-          maxLines: null,
-          decoration: InputDecoration(
-            labelText: 'Rules',
-            hintText: 'To keep those cheaters at bay',
-            errorText: snapshot.error,
-          ),
-          onChanged: _trialAddEditBloc.onRulesChanged,
-        );
-      },
+      initialValue: widget.trial?.rules,
+      labelText: Trial.friendlyFieldNames[TrialFields.rules],
+      hintText: 'To keep those cheaters at bay',
+      onChanged: _trialAddEditBloc.onRulesChanged,
+      textInputAction: TextInputAction.next,
+      currentFocusNode: rulesNode,
+      nextFocusNode: tiebreakerNode,
     );
   }
 
   Widget _descriptionFormField() {
-    return StreamBuilder<String>(
+    return BasicStreamTextFormField(
       stream: _trialAddEditBloc.description,
-      builder: (context, snapshot) {
-        return TextFormField(
-          maxLines: null,
-          decoration: InputDecoration(
-            labelText: 'Description*',
-            hintText: 'Describe what this trial is',
-            errorText: snapshot.error,
-            helperText: '*Required',
-          ),
-          onChanged: _trialAddEditBloc.onDescriptionChanged,
-          validator: _trialAddEditBloc.validateRequiredField,
-          maxLength: kFieldMaxLength,
-        );
-      },
+      initialValue: widget.trial?.description,
+      labelText: Trial.friendlyFieldNames[TrialFields.description],
+      hintText: 'Describe what this trial is all about',
+      requiredField: true,
+      onChanged: _trialAddEditBloc.onDescriptionChanged,
+      textInputAction: TextInputAction.next,
+      currentFocusNode: descriptionNode,
+      nextFocusNode: winCondNode,
     );
   }
 
   Widget _nameFormField() {
-    return StreamBuilder<String>(
+    return BasicStreamTextFormField(
       stream: _trialAddEditBloc.name,
-      builder: (context, snapshot) {
-        return TextFormField(
-          decoration: InputDecoration(
-            labelText: 'Name*',
-            hintText: 'Name it something fun and distinct',
-            errorText: snapshot.error,
-            helperText: '*Required',
-          ),
-          onChanged: _trialAddEditBloc.onNameChanged,
-          validator: _trialAddEditBloc.validateRequiredField,
-        );
-      },
+      initialValue: widget.trial?.name,
+      labelText: Trial.friendlyFieldNames[TrialFields.name],
+      hintText: 'Name it something fun and distinct',
+      requiredField: true,
+      onChanged: _trialAddEditBloc.onNameChanged,
+      textInputAction: TextInputAction.next,
+      currentFocusNode: nameNode,
+      nextFocusNode: descriptionNode,
     );
   }
 }

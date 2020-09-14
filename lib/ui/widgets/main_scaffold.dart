@@ -7,7 +7,6 @@ import 'package:maverick_trials/ui/shared/app_fab.dart';
 import 'package:maverick_trials/ui/views/explore_tab_view.dart';
 import 'package:maverick_trials/ui/views/home_tab_view.dart';
 import 'package:maverick_trials/ui/views/play_tab_view.dart';
-import 'package:maverick_trials/ui/views/trial_add_view.dart';
 
 class MainScaffold extends StatefulWidget {
   @override
@@ -42,7 +41,7 @@ class _MainScaffoldState extends State<MainScaffold>
 
     _appBars = getAppBars();
     _pageStorages = getPageStorages();
-    _appFabs = getAppFabs();
+
 
     authBloc = BlocProvider.of<AuthenticationBloc>(context);
 
@@ -51,34 +50,37 @@ class _MainScaffoldState extends State<MainScaffold>
 
   @override
   Widget build(BuildContext context) {
-    Widget _bottomNavigationBar() {
-      return BottomNavigationBar(
-          onTap: _onBottomNavigationTapped,
-          currentIndex: _selectedBottomNavigationIndex,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              title: Text('HOME'),
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.play_arrow),
-              title: Text('PLAY'),
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.explore),
-              title: Text('EXPLORE'),
-            ),
-          ]);
-    }
+    _appFabs = getAppFabs();
 
     return Scaffold(
       appBar: _appBars[_selectedBottomNavigationIndex],
       drawer: AppDrawer(userRepository: authBloc.userRepository),
       body: _pageStorages[_selectedBottomNavigationIndex]
           [_selectedTabBarIndexes[_selectedBottomNavigationIndex]],
-      bottomNavigationBar: _bottomNavigationBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(),
       floatingActionButton: _appFabs[_selectedBottomNavigationIndex],
       resizeToAvoidBottomInset: false,
+    );
+  }
+
+  Widget _buildBottomNavigationBar(){
+    return BottomNavigationBar(
+      onTap: _onBottomNavigationTapped,
+      currentIndex: _selectedBottomNavigationIndex,
+      items: const <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          title: Text('HOME'),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.play_arrow),
+          title: Text('PLAY'),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.explore),
+          title: Text('EXPLORE'),
+        ),
+      ]
     );
   }
 
@@ -87,12 +89,13 @@ class _MainScaffoldState extends State<MainScaffold>
       AppFab(
         fabs: <FloatingActionButton>[
           FloatingActionButton(
+            backgroundColor: Theme.of(context).primaryColor,
             heroTag: 'HomeTrialAdd',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => TrialAddEditView(trial: null),
+                  builder: (context) => TrialAddEditView(),
                 )
               );
             },
@@ -101,19 +104,21 @@ class _MainScaffoldState extends State<MainScaffold>
               children: <Widget>[
                 Icon(Icons.text_fields),
                 Positioned(
-                  bottom: 3.0,
-                  left: 3.0,
+                  top: 3.0,
+                  right: 3.0,
                   child: Icon(
                     Icons.add,
-                    size: 10.0,
+                    size: 25.0,
                   ),
                 )
               ],
             ),
           ),
           FloatingActionButton(
+            backgroundColor: Theme.of(context).primaryColor,
             heroTag: 'HomeGameAdd',
             onPressed: () {
+
               /*Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -128,11 +133,11 @@ class _MainScaffoldState extends State<MainScaffold>
               children: <Widget>[
                 Icon(Icons.games),
                 Positioned(
-                  bottom: 3.0,
-                  left: 3.0,
+                  bottom: 5.0,
+                  left: 5.0,
                   child: Icon(
                     Icons.add,
-                    size: 10.0,
+                    size: 15.0,
                   ),
                 )
               ],
@@ -143,6 +148,7 @@ class _MainScaffoldState extends State<MainScaffold>
       AppFab(
         fabs: <FloatingActionButton>[
           FloatingActionButton(
+            backgroundColor: Theme.of(context).primaryColor,
             onPressed: () {
               /*Navigator.push(
                 context,
@@ -157,6 +163,7 @@ class _MainScaffoldState extends State<MainScaffold>
             child: Icon(Icons.videogame_asset),
           ),
           FloatingActionButton(
+            backgroundColor: Theme.of(context).primaryColor,
             onPressed: () {
               /*Navigator.push(
                 context,
@@ -187,11 +194,12 @@ class _MainScaffoldState extends State<MainScaffold>
       AppFab(
         fabs: <FloatingActionButton>[
           FloatingActionButton(
+            backgroundColor: Theme.of(context).primaryColor,
             onPressed: () {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => TrialAddView(),
+                    builder: (context) => TrialAddEditView(),
                   ));
             },
             tooltip: 'Add Trial',
@@ -210,6 +218,7 @@ class _MainScaffoldState extends State<MainScaffold>
             ),
           ),
           FloatingActionButton(
+            backgroundColor: Theme.of(context).primaryColor,
             onPressed: () {
               /*Navigator.push(
                 context,

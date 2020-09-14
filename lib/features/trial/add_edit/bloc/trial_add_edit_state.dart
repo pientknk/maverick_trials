@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/models/trial.dart';
 
 abstract class TrialAddEditState extends Equatable {
@@ -20,6 +19,13 @@ class StateLoading extends TrialAddEditState {
   }
 }
 
+class StateSaving extends TrialAddEditState {
+  @override
+  String toString() {
+    return 'StateSaving<TrialAddEditState>';
+  }
+}
+
 class AddTrialStateSuccess extends TrialAddEditState {
   final Trial trial;
 
@@ -31,14 +37,14 @@ class AddTrialStateSuccess extends TrialAddEditState {
   }
 }
 
-class AddTrialStateFailure extends TrialAddEditState {
+class FailureState extends TrialAddEditState {
   final String error;
 
-  AddTrialStateFailure(this.error) : super([error]);
+  FailureState(this.error) : super([error]);
 
   @override
   String toString() {
-  return 'AddTrialStateFailure<$error>';
+  return 'FailureState<$error>';
   }
 }
 
@@ -50,27 +56,5 @@ class EditTrialStateSuccess extends TrialAddEditState {
   @override
   String toString() {
     return 'EditTrialStateSuccess<${trial.name}>';
-  }
-}
-
-class EditTrialStateFailure extends TrialAddEditState {
-  final String error;
-
-  EditTrialStateFailure(this.error) : super([error]);
-
-  @override
-  String toString() {
-    return 'EditTrialStateFailure<$error>';
-  }
-}
-
-class StepperState extends TrialAddEditState {
-  final int stepIndex;
-
-  StepperState({@required this.stepIndex}) : super([stepIndex]);
-
-  @override
-  String toString() {
-    return 'StepperState<$stepIndex>';
   }
 }

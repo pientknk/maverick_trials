@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_view.dart';
-import 'package:maverick_trials/ui/views/trial_detail_view.dart';
 import 'package:maverick_trials/ui/widgets/main_scaffold.dart';
 
 class Router {
@@ -10,8 +9,6 @@ class Router {
         return MaterialPageRoute(builder: (_) => MainScaffold());
       case addTrialRoute:
         return MaterialPageRoute(builder: (_) => TrialAddEditView());
-      case trialDetailsRoute:
-        return MaterialPageRoute(builder: (_) => TrialDetailView());
       default:
         return MaterialPageRoute(builder: (_) {
           return Scaffold(

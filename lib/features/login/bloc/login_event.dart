@@ -39,3 +39,10 @@ class AnonymousAccountPressedEvent extends LoginEvent {
     return 'AnonymousAccountPressedEvent';
   }
 }
+
+class OfflineModePressedEvent extends LoginEvent {
+  @override
+  String toString() {
+    return 'OfflineModePressedEvent';
+  }
+}

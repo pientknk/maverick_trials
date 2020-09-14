@@ -39,6 +39,6 @@ class AuthenticationFailureState extends AuthenticationState {
 
   @override
   String toString() {
-    return 'AuthenticationFailureState';
+    return 'AuthenticationFailureState<$error>';
   }
 }

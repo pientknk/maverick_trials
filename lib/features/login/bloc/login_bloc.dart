@@ -76,6 +76,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
     if (event is AnonymousAccountPressedEvent) {
       yield* _mapAnonymousAccountEventToState();
     }
+
+    if (event is OfflineModePressedEvent) {
+      yield* _mapOfflineModePressedEventToState();
+    }
   }
 
   Stream<LoginState> _mapLoginInitialEventToState() async* {
@@ -149,6 +153,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
     });
 
     yield loginState;
+  }
+
+  Stream<LoginState> _mapOfflineModePressedEventToState() async* {
+    authenticationBloc
+      .add(AuthenticationLoggedInEvent(name: 'Offline Login'));
   }
 
   @override

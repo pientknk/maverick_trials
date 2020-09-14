@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:maverick_trials/ui/widgets/app_buttons.dart';
+import 'package:maverick_trials/ui/widgets/app_texts.dart';
 
 class PlayTabView extends StatefulWidget {
   PlayTabView(this.index, this.hasActiveGame, {Key key}) : super(key: key);
@@ -41,22 +43,23 @@ class _PlayTabViewState extends State<PlayTabView> {
           Row(
             children: <Widget>[
               Expanded(
-                child: RaisedButton(
+                child: AppButton(
                     onPressed: () {
                       //navigate to Home tab with filter set to games
                     },
-                    child: Text("Find Games")),
+                    text: ButtonThemeText(text: "Find Games".toUpperCase())
+                ),
               ),
             ],
           ),
           Row(
             children: <Widget>[
               Expanded(
-                child: RaisedButton(
+                child: AppButton(
                   onPressed: () {
-                    //navigate to Explore tab with filter set to games
+                    //navigate to Home tab with filter set to games
                   },
-                  child: Text("My Games"),
+                  text: ButtonThemeText(text: "My Games".toUpperCase())
                 ),
               )
             ],

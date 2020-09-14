@@ -16,6 +16,7 @@ class LoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: BlocProvider<LoginBloc>(
         create: (BuildContext context) {
           return LoginBloc(

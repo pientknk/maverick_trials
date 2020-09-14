@@ -2,12 +2,15 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/models/trial.dart';
+import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/trial_repository.dart';
 import 'package:maverick_trials/core/validation/length_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
+import 'package:maverick_trials/features/authentication/bloc/auth.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_event.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_state.dart';
+import 'package:maverick_trials/locator.dart';
 import 'package:rxdart/rxdart.dart';
 
 const int kFieldMaxLength = 250;
@@ -15,14 +18,11 @@ const int kNameMaxLength = 30;
 
 class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     with RequiredFieldValidator, LengthValidator, RequiredLengthValidator {
-  final TrialRepository trialRepository;
+  final AuthenticationBloc authBloc;
+  final Trial trial;
+  final trialRepository = locator<TrialRepository>();
 
-  final formKeys = [
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-    GlobalKey<FormState>(),
-  ];
+  final formKey = GlobalKey<FormState>();
 
   final BehaviorSubject<String> _nameController = BehaviorSubject<String>();
   final BehaviorSubject<String> _descriptionController =
@@ -39,7 +39,6 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     'Group',
     'Individual',
   ];
-  final BehaviorSubject<int> _stepperIndexController = BehaviorSubject<int>.seeded(0);
 
   /// Inputs
   Function(String) get onNameChanged => _nameController.sink.add;
@@ -79,10 +78,6 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
   Stream<String> get requirements => _requirementsController.stream
       .transform(validateLength(max: kFieldMaxLength));
 
-  int get stepperIndex => _stepperIndexController.stream.value;
-
-  ValueStream<int> get stepperIndexStream => _stepperIndexController.stream;
-
   /// for the state of the submit button
   Stream<bool> get canSubmit => Rx.combineLatest4(
     name,
@@ -90,53 +85,30 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     trialType,
     winCondition,
     (a, b, c, d,) => true);
-  
-  Stream<bool> get stepOneValid => Rx.combineLatest3(
-    name,
-    description,
-    trialType,
-    (a, b, c) => true);
-  
-  Stream<bool> get stepTwoValid => Rx.combineLatest([winCondition], (values) => true);
 
-  void addTrial() async {
+  Future<Trial> createNewTrial() async {
     Trial trial = Trial.newTrial();
-    trial.name = _nameController.stream.value;
-    trial.description = _descriptionController.stream.value;
-    trial.trialType = _trialTypeController.stream.value;
-    trial.winCondition = _winCondController.stream.value;
-    trial.rules = _rulesController.stream.value;
-    trial.tieBreaker = _tieBreakerController.stream.value;
-    trial.requirements = _requirementsController.stream.value;
+    _setTrial(trial);
 
-    trial.creatorUserCareerID = 'Nick Pientka';
+    User user = await authBloc.userRepository.getCurrentUser();
+    trial.creatorUserCareerID = user.nickname;
     trial.createdTime = DateTime.now();
     trial.trialRunCount = 0;
     trial.gameCount = 0;
+
+    return trial;
   }
 
-  TrialAddEditBloc({@required this.trialRepository});
+  TrialAddEditBloc({@required this.authBloc, @required this.trial})
+    : assert(authBloc != null){
+    onTrialTypeChanged(trial?.trialType);
+  }
 
   @override
   TrialAddEditState get initialState => StartState();
 
   @override
   Stream<TrialAddEditState> mapEventToState(TrialAddEditEvent event) async* {
-    if(event is StepTappedEvent){
-      onStepTap(event.stepIndex);
-      yield StepperState(stepIndex: event.stepIndex);
-    }
-
-    if(event is StepContinueEvent){
-      onStepContinue(event.stepCount);
-      yield StepperState(stepIndex: stepperIndex);
-    }
-
-    if(event is StepCancelEvent){
-      onStepCancel();
-      yield StepperState(stepIndex: stepperIndex);
-    }
-
     if (event is AddTrialEvent) {
       yield* _mapAddTrialEventToState(event);
     }
@@ -148,27 +120,29 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
 
   Stream<TrialAddEditState> _mapAddTrialEventToState(
       AddTrialEvent event) async* {
-    yield StateLoading();
-    Trial trial = Trial.newTrial();
-    _setTrial(trial);
+    yield StateSaving();
+    if(validateForm()){
+      Trial trial = await createNewTrial();
 
-    trial.creatorUserCareerID = 'Nick Pientka';
-    trial.createdTime = DateTime.now();
-    trial.trialRunCount = 0;
-    trial.gameCount = 0;
+      await trialRepository.addTrial(trial);
 
-    Trial addedTrial = await trialRepository.addTrial(event.trial);
-    yield AddTrialStateSuccess(addedTrial);
+      yield AddTrialStateSuccess(trial);
+    }
+    else{
+      yield FailureState('There are errors in the form');
+    }
+
   }
 
   Stream<TrialAddEditState> _mapEditTrialEventToState(
       EditTrialEvent event) async* {
-    yield StateLoading();
+    yield StateSaving();
     Trial trial = event.trial;
     _setTrial(trial);
 
-    Trial editTrial = await trialRepository.updateTrial(trial);
-    yield EditTrialStateSuccess(editTrial);
+    await trialRepository.updateTrial(trial);
+
+    yield EditTrialStateSuccess(trial);
   }
 
   @override
@@ -178,7 +152,8 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     super.onTransition(transition);
   }
 
-  void dispose() {
+  @override
+  Future<void> close() {
     _nameController.close();
     _descriptionController.close();
     _trialTypeController.close();
@@ -186,7 +161,8 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     _rulesController.close();
     _tieBreakerController.close();
     _requirementsController.close();
-    _stepperIndexController.close();
+
+    return super.close();
   }
 
   void _setTrial(Trial trial) {
@@ -199,52 +175,11 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     trial.requirements = _requirementsController.stream.value;
   }
 
-  void onStepCancel(){
-    int currentIndex = _stepperIndexController.stream.value;
-    if(--currentIndex >= 0){
-      _stepperIndexController.sink.add(currentIndex);
-    }
-  }
-
-  void onStepContinue(int stepCount) {
-    int currentIndex = _stepperIndexController.stream.value;
-    if(++currentIndex < stepCount){
-      String name = _nameController.stream.value;
-      print('OnStepContinue: name - $name');
-
-      final formKey = formKeys[stepperIndex];
-      if(formKey.currentState != null){
-        if(formKey.currentState.validate()){
-          _stepperIndexController.sink.add(currentIndex);
-        }
-      }
-      else{
-        print('onStepContinue: formkey current state is null');
-      }
-    }
-  }
-
-  void onStepTap(int stepIndex){
-    if(stepIndex > stepperIndex){
-      final formKey = formKeys[stepperIndex];
-      if(formKey.currentState != null){
-        if(formKey.currentState.validate()){
-          _stepperIndexController.sink.add(stepIndex);
-        }
-      }
-      else{
-        print('onStepTap: formkey current state is null');
-      }
-    }
-    else{
-      _stepperIndexController.sink.add(stepIndex);
-    }
-  }
-
-  void validateFormKey(int index){
-    final formKey = formKeys[index];
+  bool validateForm(){
     if(formKey.currentState != null){
-      formKey.currentState.validate();
+      return formKey.currentState.validate();
     }
+
+    return false;
   }
 }

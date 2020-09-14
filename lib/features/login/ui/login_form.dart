@@ -7,6 +7,9 @@ import 'package:maverick_trials/features/register/ui/register_page.dart';
 import 'package:maverick_trials/features/reset_password/ui/reset_password_view.dart';
 import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 import 'package:maverick_trials/ui/widgets/app_buttons.dart';
+import 'package:maverick_trials/ui/widgets/app_text_fields.dart';
+import 'package:maverick_trials/ui/widgets/app_text_link.dart';
+import 'package:maverick_trials/ui/widgets/app_texts.dart';
 
 class LoginForm extends StatefulWidget {
   final UserRepository _userRepository;
@@ -23,9 +26,13 @@ class LoginForm extends StatefulWidget {
 class LoginFormState extends State<LoginForm> {
   LoginBloc _loginBloc;
   final _formKey = GlobalKey<FormState>();
+  FocusNode emailNode;
+  FocusNode passwordNode;
 
   @override
   void initState() {
+    emailNode = FocusNode();
+    passwordNode = FocusNode();
     _loginBloc = BlocProvider.of<LoginBloc>(context);
     super.initState();
   }
@@ -52,7 +59,9 @@ class LoginFormState extends State<LoginForm> {
                         child: Container(
                             padding: const EdgeInsets.only(left: 12),
                             child: Text(widget._userRepository
-                                .getErrorMsgForCode(state.errorCode)))),
+                                .getErrorMsgForCode(state.errorCode)),
+                        ),
+                    ),
                   ],
                 ),
                 backgroundColor: Colors.red,
@@ -94,66 +103,34 @@ class LoginFormState extends State<LoginForm> {
             onWillPop: _onWillPop,
             child: Container(
               padding: const EdgeInsets.only(left: 12, top: 25, right: 12),
-              child: Column(
-                children: <Widget>[
-                  Center(
-                      child: FlutterLogo(
-                    size: 65,
-                  )),
-                  Center(child: Text('MAVERICK TRIALS')),
-                  Center(
-                      child: Text(
-                          'Play with friends or family and compete for fame and glory')),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: <Widget>[
-                        StreamBuilder<String>(
-                          stream: _loginBloc.email,
-                          builder: (BuildContext context,
-                              AsyncSnapshot<String> snapshot) {
-                            return TextFormField(
-                              decoration: InputDecoration(
-                                labelText: 'Email',
-                                hintText: 'myemail@gmail.com',
-                                errorText: snapshot.error,
-                              ),
-                              onChanged: _loginBloc.onEmailChanged,
-                              validator: _loginBloc.validateRequiredField,
-                            );
-                          },
-                        ),
-                        StreamBuilder<String>(
-                          stream: _loginBloc.password,
-                          builder: (BuildContext context,
-                              AsyncSnapshot<String> snapshot) {
-                            return TextFormField(
-                              obscureText: true,
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                hintText: '********',
-                                errorText: snapshot.error,
-                              ),
-                              onChanged: _loginBloc.onPasswordChanged,
-                              validator: _loginBloc.validateRequiredField,
-                            );
-                          },
-                        ),
-                        forgotPasswordLink(),
-                        StreamBuilder<bool>(
-                          stream: _loginBloc.isLoginButtonEnabled,
-                          builder: (BuildContext context,
-                              AsyncSnapshot<bool> snapshot) {
-                            return loginButton(snapshot);
-                          },
-                        ),
-                        googleLoginButton(),
-                        guestAccountButton(),
-                        createAccountButton(),
-                      ],
+              child: SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    Center(
+                        child: FlutterLogo(
+                      size: 65,
+                    )),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(child: ImportantText(text: 'MAVERICK TRIALS')),
                     ),
-                  ),
-                ],
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: <Widget>[
+                          _emailField(),
+                          _passwordField(),
+                          forgotPasswordLink(),
+                          _loginButton(),
+                          createAccountButton(),
+                          googleLoginButton(),
+                          guestAccountButton(),
+                          offlineModeButton(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -171,9 +148,8 @@ class LoginFormState extends State<LoginForm> {
 
   Widget createAccountButton(){
     return AppIconButton(
-      text: Text('Create an Account'),
+      text: Text('Create New Account'.toUpperCase()),
       icon: Icon(Icons.person_add),
-      color: Colors.greenAccent,
       onPressed: (){
         Navigator.of(context)
           .push(MaterialPageRoute(builder: (BuildContext context) {
@@ -187,9 +163,7 @@ class LoginFormState extends State<LoginForm> {
 
   Widget guestAccountButton(){
     return AppIconButton(
-      text: Text('Create Guest Account',
-        style: TextStyle(color: Colors.white)
-      ),
+      text: ButtonThemeText(text: 'create guest account'.toUpperCase()),
       icon: FaIcon(
         FontAwesomeIcons.userNinja,
         color: Colors.white,
@@ -198,20 +172,18 @@ class LoginFormState extends State<LoginForm> {
         BlocProvider.of<LoginBloc>(context)
           .add(AnonymousAccountPressedEvent());
       },
-      color: Colors.black,
+      //color: Colors.black,
     );
   }
 
   Widget googleLoginButton(){
     return AppIconButton(
-      text: Text('Sign in with Google',
-        style: TextStyle(color: Colors.white),
-      ),
+      text: ButtonThemeText(text: 'Log in with Google'.toUpperCase()),
       icon: FaIcon(
         FontAwesomeIcons.google,
         color: Colors.white,
       ),
-      color: Colors.redAccent,
+      //color: Colors.redAccent,
       onPressed: (){
         BlocProvider.of<LoginBloc>(context).add(
           LoginWithGooglePressedEvent(),
@@ -222,9 +194,9 @@ class LoginFormState extends State<LoginForm> {
 
   Widget loginButton(AsyncSnapshot<bool> snapshot){
     return AppIconButton(
-      text: Text('LOGIN'),
+      text: ButtonThemeText(text: 'LOG IN'.toUpperCase()),
       icon: Icon(Icons.verified_user),
-      color: Colors.blueGrey[300],
+      //color: Colors.blueGrey[300],
       onPressed:
         (snapshot.hasData && snapshot.data == true)
           ? () => _loginBloc.onLoginButtonPressed()
@@ -232,25 +204,31 @@ class LoginFormState extends State<LoginForm> {
     );
   }
 
+  Widget offlineModeButton() {
+    return AppIconButton(
+      text: ButtonThemeText(text: 'Offline Mode'.toUpperCase()),
+      icon: Icon(Icons.signal_wifi_off),
+      //color: Colors.deepOrangeAccent,
+      onPressed: (){
+        BlocProvider.of<LoginBloc>(context).add(
+          OfflineModePressedEvent()
+        );
+      },
+    );
+  }
+
   Widget forgotPasswordLink(){
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 5),
-        child: InkWell(
-          child: Text(
-            'Forgot password?',
-            style: TextStyle(
-              decoration: TextDecoration.underline,
-            ),
-          ),
-          onTap: () {
-            Navigator.of(context)
-              .push(MaterialPageRoute(builder: (BuildContext context) {
-              return ResetPasswordView(userRepository: widget._userRepository);
-            }));
-          },
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: AppTextLink(
+        alignment: Alignment.centerRight,
+        label: 'Forgot password?',
+        onTap: () {
+          Navigator.of(context)
+            .push(MaterialPageRoute(builder: (BuildContext context) {
+            return ResetPasswordView(userRepository: widget._userRepository);
+          }));
+        },
       ),
     );
   }
@@ -266,6 +244,42 @@ class LoginFormState extends State<LoginForm> {
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
         )
       ],
+    );
+  }
+
+  Widget _passwordField(){
+    return BasicStreamTextFormField(
+      stream: _loginBloc.password,
+      labelText: 'Password',
+      hintText: '********',
+      obscureText: true,
+      onChanged: _loginBloc.onPasswordChanged,
+      textInputAction: TextInputAction.done,
+      currentFocusNode: passwordNode,
+      validator: _loginBloc.validateRequiredField,
+    );
+  }
+
+  Widget _loginButton(){
+    return StreamBuilder<bool>(
+      stream: _loginBloc.isLoginButtonEnabled,
+      builder: (BuildContext context,
+        AsyncSnapshot<bool> snapshot) {
+        return loginButton(snapshot);
+      },
+    );
+  }
+
+  Widget _emailField(){
+    return BasicStreamTextFormField(
+      stream: _loginBloc.email,
+      labelText: 'Email',
+      hintText: 'myemail@gmail.com',
+      onChanged: _loginBloc.onEmailChanged,
+      textInputAction: TextInputAction.next,
+      currentFocusNode: emailNode,
+      nextFocusNode: passwordNode,
+      validator: _loginBloc.validateRequiredField,
     );
   }
 }

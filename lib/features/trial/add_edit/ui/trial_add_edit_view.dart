@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/trial.dart';
-import 'package:maverick_trials/core/repository/trial_repository.dart';
+import 'package:maverick_trials/features/authentication/bloc/auth.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_bloc.dart';
 import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_form.dart';
 
 class TrialAddEditView extends StatefulWidget {
   final Trial trial;
 
-  TrialAddEditView({@required this.trial});
+  TrialAddEditView({Key key, this.trial}) : super(key: key);
 
   @override
   _TrialAddEditViewState createState() => _TrialAddEditViewState();
@@ -17,14 +17,13 @@ class TrialAddEditView extends StatefulWidget {
 class _TrialAddEditViewState extends State<TrialAddEditView> {
   @override
   Widget build(BuildContext context) {
-    final TrialRepository trialRepository = TrialRepository();
-
     return Scaffold(
       appBar: _buildAppBar(),
       body: BlocProvider<TrialAddEditBloc>(
         create: (BuildContext context){
           return TrialAddEditBloc(
-            trialRepository: trialRepository,
+            authBloc: BlocProvider.of<AuthenticationBloc>(context),
+            trial: widget.trial,
           );
         },
         child: TrialAddEditForm(trial: widget.trial),
@@ -38,7 +37,6 @@ class _TrialAddEditViewState extends State<TrialAddEditView> {
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back,
-          size: 25.0,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 5.0),
         onPressed: () {

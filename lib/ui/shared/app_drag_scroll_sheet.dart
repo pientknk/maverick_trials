@@ -15,8 +15,8 @@ class _AppDragScrollSheet extends State<AppDragScrollSheet> {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-        initialChildSize: 0.5,
-        minChildSize: 0.25,
+        initialChildSize: 0.85,
+        minChildSize: 0.85,
         maxChildSize: 1.0,
         builder: (context, scrollController) {
           return SingleChildScrollView(

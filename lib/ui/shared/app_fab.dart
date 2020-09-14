@@ -30,13 +30,6 @@ class _AppFabState extends State<AppFab> with SingleTickerProviderStateMixin {
     _animateIcon =
         Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
 
-    _buttonColor = ColorTween(
-      begin: Colors.green,
-      end: Colors.red,
-    ).animate(CurvedAnimation(
-        parent: _animationController,
-        curve: Interval(0.00, 1.00, curve: Curves.linear)));
-
     _translateButton = Tween<double>(
       begin: _fabHeight,
       end: -14.0,
@@ -50,6 +43,15 @@ class _AppFabState extends State<AppFab> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    _buttonColor = ColorTween(
+      begin: Theme.of(context).primaryColor,
+      end: Colors.red,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Interval(0.00, 1.00, curve: Curves.linear),
+    )
+    );
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: _buildColumnWidgets(),

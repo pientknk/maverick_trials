@@ -24,12 +24,10 @@ class RegisterPage extends StatelessWidget {
         ),
         title: Text('Register'),
       ),
-      body: Center(
-        child: BlocProvider<RegisterBloc>(
-          create: (BuildContext context) =>
-              RegisterBloc(userRepository: _userRepository),
-          child: RegisterForm(),
-        ),
+      body: BlocProvider<RegisterBloc>(
+        create: (BuildContext context) =>
+            RegisterBloc(userRepository: _userRepository),
+        child: RegisterForm(),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:maverick_trials/core/models/search_item.dart';
 import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/repository.dart';
 import 'package:maverick_trials/core/services/firestore_api.dart';
@@ -9,11 +10,8 @@ import 'package:maverick_trials/core/services/firestore_api.dart';
 class UserRepository extends Repository {
   User _currentUser;
 
-  Future<User> addUser(User user) async {
-    DocumentReference userRef =
-        await dbAPI.addDocument(FirestoreAPI.usersCollection, user.toJson());
-    DocumentSnapshot userSnapshot = await userRef.get();
-    return User.fromJson(userSnapshot.data);
+  Future<void> addUser(User user) async {
+    await dbAPI.addDocument(FirestoreAPI.usersCollection, user.toJson(), docID: user.nickname);
   }
 
   Future<void> removeUser(User user) async {
@@ -34,7 +32,12 @@ class UserRepository extends Repository {
 
   Future<User> getUserByUID({@required String uid}) async {
     QuerySnapshot snapshot = await dbAPI.getDocumentByField(
-        FirestoreAPI.usersCollection, 'UUID', uid);
+      searchItem: SearchItem(
+        collectionName: FirestoreAPI.usersCollection,
+        fieldName: 'UUID',
+        value: uid,
+      ),
+    );
     DocumentSnapshot userSnapshot = snapshot.documents.first;
     return User.fromJson(userSnapshot.data);
   }
@@ -93,6 +96,8 @@ class UserRepository extends Repository {
       case 'ERROR_LOGIN_GOOGLE':
         return 'Unable to log in using Google';
         break;
+      case 'ERROR_NETWORK_REQUEST_FAILED':
+        return 'No internet connection found';
       default:
         return 'Error: $code';
         break;

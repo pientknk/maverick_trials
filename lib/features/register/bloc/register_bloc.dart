@@ -5,6 +5,7 @@ import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
 import 'package:maverick_trials/features/register/bloc/register.dart';
+import 'package:maverick_trials/utils/word_generator.dart';
 import 'package:rxdart/rxdart.dart';
 
 const int kPasswordMaxLength = 32;
@@ -16,7 +17,9 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
 
   final BehaviorSubject<String> _emailController = BehaviorSubject<String>();
   final BehaviorSubject<String> _passwordController = BehaviorSubject<String>();
+  final TextEditingController nicknameTextController = TextEditingController();
   final BehaviorSubject<String> _nicknameController = BehaviorSubject<String>();
+  final BehaviorSubject<bool> _nicknameRunAnimationController = BehaviorSubject<bool>.seeded(false);
 
   Function(String) get onEmailChanged => _emailController.sink.add;
 
@@ -35,12 +38,13 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
   Stream<bool> get isRegisterButtonEnabled =>
       Rx.combineLatest3(nickname, email, password, (a, b, c) => true);
 
+  Stream<bool> get randomGeneratedNickname => _nicknameRunAnimationController.stream;
+
   RegisterBloc({@required UserRepository userRepository})
       : assert(userRepository != null),
         _userRepository = userRepository;
 
   @override
-  // TODO: implement initialState
   RegisterState get initialState => RegisterState.initial();
 
   @override
@@ -72,14 +76,26 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
     _emailController.close();
     _passwordController.close();
     _nicknameController.close();
+    _nicknameRunAnimationController.close();
+    nicknameTextController.dispose();
     return super.close();
   }
 
-  void onRegisterButtonPressed() {
+  void onRegisterButtonPressed(BuildContext context) {
+    _nicknameRunAnimationController.sink.add(false);
+    FocusScope.of(context).unfocus();
     this.add(RegisterSubmittedEvent(
       nickname: _nicknameController.stream.value,
       email: _emailController.stream.value,
       password: _passwordController.stream.value,
     ));
+  }
+
+  void onGenerateNicknameButtonPressed() {
+    _nicknameRunAnimationController.sink.add(true);
+
+    String generatedWordPair = WordGenerator.generateWordPair();
+    nicknameTextController.value = nicknameTextController.value.copyWith(text: generatedWordPair);
+    onNicknameChanged(generatedWordPair);
   }
 }

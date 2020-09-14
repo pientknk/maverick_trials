@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/features/settings/ui/settings_view.dart';
 import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 import 'package:maverick_trials/ui/shared/logout_button.dart';
 
@@ -36,7 +37,6 @@ class AppDrawer extends StatelessWidget {
                     child: Icon(
                       Icons.account_circle,
                       size: 40.0,
-                      color: Colors.black,
                     ),
                   ),
                   Expanded(
@@ -52,10 +52,15 @@ class AppDrawer extends StatelessWidget {
                     child: IconButton(
                       icon: Icon(
                         Icons.settings,
-                        size: 25.0,
-                        color: Colors.black,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SettingsView(),
+                          )
+                        );
+                      },
                     ),
                   ),
                 ],

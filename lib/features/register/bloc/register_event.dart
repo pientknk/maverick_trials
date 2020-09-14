@@ -26,3 +26,14 @@ class RegisterSubmittedEvent extends RegisterEvent {
     return 'RegisterSubmittedEvent<$nickname, $email, $password>';
   }
 }
+
+class RegisterUpdateEvent extends RegisterEvent {
+  final String nickname;
+
+  RegisterUpdateEvent({@required this.nickname}) : super([nickname]);
+
+  @override
+  String toString() {
+    return 'RegisterUpdateEvent';
+  }
+}

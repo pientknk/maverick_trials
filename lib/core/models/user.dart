@@ -11,7 +11,7 @@ class User {
       localImageURL; //if avatars are only available from a list of local images, do we need to store them online?
   List<String> friendIDs;
   String careerID;
-  String preferenceID;
+  String settingsID;
 
   User(this.createdTime, this.userUID, this.nickname,
       {this.firstName,
@@ -19,7 +19,7 @@ class User {
       this.localImageURL,
       this.friendIDs,
       this.careerID,
-      this.preferenceID});
+      this.settingsID});
 
   factory User.fromJson(Map<dynamic, dynamic> json) => _userFromJson(json);
 
@@ -36,7 +36,7 @@ User _userFromJson(Map<dynamic, dynamic> json) {
     localImageURL: json['A'] as String,
     friendIDs: List.from(json['Fs'] ?? List()),
     careerID: json['C'] as String,
-    preferenceID: json['P'] as String,
+    settingsID: json['S'] as String,
   );
 }
 
@@ -49,5 +49,17 @@ Map<String, dynamic> _userToJson(User instance) => <String, dynamic>{
       'A': instance.localImageURL,
       'Fs': instance.friendIDs,
       'C': instance.careerID,
-      'P': instance.preferenceID,
+      'P': instance.settingsID,
     };
+
+enum UserFields {
+  createdTime,
+  userUID,
+  nickname,
+  firstName,
+  lastName,
+  localImageURL,
+  friendIDs,
+  careerID,
+  settingsID,
+}

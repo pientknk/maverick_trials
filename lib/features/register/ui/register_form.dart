@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:maverick_trials/features/register/bloc/register.dart';
-import 'package:maverick_trials/features/register/ui/register_button.dart';
 import 'package:maverick_trials/features/register/ui/verify_email_dialog.dart';
 import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
+import 'package:maverick_trials/ui/widgets/app_animated_icon_button.dart';
+import 'package:maverick_trials/ui/widgets/app_buttons.dart';
+import 'package:maverick_trials/ui/widgets/app_text_fields.dart';
+import 'package:maverick_trials/ui/widgets/app_texts.dart';
 
 class RegisterForm extends StatefulWidget {
   @override
@@ -11,13 +15,29 @@ class RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<RegisterForm> {
-  RegisterBloc _registerBloc;
   final _formKey = GlobalKey<FormState>();
+  RegisterBloc _registerBloc;
+  FocusNode nicknameNode;
+  FocusNode emailNode;
+  FocusNode passwordNode;
 
   @override
   void initState() {
     _registerBloc = BlocProvider.of<RegisterBloc>(context);
+    nicknameNode = FocusNode();
+    emailNode = FocusNode();
+    passwordNode = FocusNode();
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    nicknameNode.dispose();
+    emailNode.dispose();
+    passwordNode.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -71,7 +91,7 @@ class _RegisterFormState extends State<RegisterForm> {
                   ],
                 ),
                 backgroundColor: Colors.red,
-                duration: Duration(seconds: 3),
+                duration: Duration(seconds: 2),
               ),
             );
         }
@@ -79,78 +99,126 @@ class _RegisterFormState extends State<RegisterForm> {
       child: BlocBuilder<RegisterBloc, RegisterState>(
         builder: (BuildContext context, RegisterState state) {
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Form(
               key: _formKey,
               child: Column(
                 children: <Widget>[
-                  StreamBuilder<String>(
-                    stream: _registerBloc.nickname,
-                    builder:
-                        (BuildContext context, AsyncSnapshot<String> snapshot) {
-                      return TextFormField(
-                        //TODO: build a random name generator to use for suggestions and have extra button to pick random nickname for user
-                        decoration: InputDecoration(
-                          labelText: 'Nickname',
-                          hintText: 'flamingjesus',
-                          errorText: snapshot.error,
-                        ),
-                        onChanged: _registerBloc.onNicknameChanged,
-                        validator: _registerBloc.validateRequiredField,
-                      );
-                    },
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: <Widget>[
+                          _header(),
+                          _nicknameFormField(),
+                          _emailFormField(),
+                          _passwordFormField(),
+                        ],
+                      ),
+                    ),
                   ),
-                  StreamBuilder<String>(
-                    stream: _registerBloc.email,
-                    builder:
-                        (BuildContext context, AsyncSnapshot<String> snapshot) {
-                      return TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          hintText: 'myemail@gmail.com',
-                          errorText: snapshot.error,
-                        ),
-                        onChanged: _registerBloc.onEmailChanged,
-                        validator: _registerBloc.validateRequiredField,
-                      );
-                    },
-                  ),
-                  StreamBuilder<String>(
-                    stream: _registerBloc.password,
-                    builder:
-                        (BuildContext context, AsyncSnapshot<String> snapshot) {
-                      return TextFormField(
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          hintText: '********',
-                          errorText: snapshot.error,
-                        ),
-                        onChanged: _registerBloc.onPasswordChanged,
-                        validator: _registerBloc.validateRequiredField,
-                      );
-                    },
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                  StreamBuilder<bool>(
-                    stream: _registerBloc.isRegisterButtonEnabled,
-                    builder:
-                        (BuildContext context, AsyncSnapshot<bool> snapshot) {
-                      return RegisterButton(
-                        onPressed: (snapshot.hasData && snapshot.data == true)
-                            ? () => _registerBloc.onRegisterButtonPressed()
-                            : null,
-                      );
-                    },
-                  ),
+                  _registerButton(context),
                 ],
               ),
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _registerButton(BuildContext context){
+    return StreamBuilder<bool>(
+        stream: _registerBloc.isRegisterButtonEnabled,
+        builder:
+          (BuildContext context, AsyncSnapshot<bool> snapshot) {
+          return AppButton(
+            text: ButtonThemeText(text: 'Register'.toUpperCase()),
+            onPressed: (snapshot.hasData && snapshot.data == true)
+              ? () => _registerBloc.onRegisterButtonPressed(context)
+              : null,
+          );
+        },
+      );
+  }
+
+  Widget _header(){
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SecondaryText(
+          text:
+          'Create an account in order to save your hard work, add '
+            'friends, and play games with them.'
+        ),
+      ),
+    );
+  }
+
+  Widget _nicknameFormField(){
+    return BasicStreamTextFormField(
+      stream: _registerBloc.nickname,
+      labelText: 'Nickname',
+      hintText: 'FlamingJesus',
+      onChanged: _registerBloc.onNicknameChanged,
+      textInputAction: TextInputAction.next,
+      currentFocusNode: nicknameNode,
+      nextFocusNode: emailNode,
+      suffixIcon: _animatedIconButton(),
+      controller: _registerBloc.nicknameTextController,
+      validator: _registerBloc.validateRequiredField,
+    );
+  }
+
+  Widget _animatedIconButton(){
+    return StreamBuilder<bool>(
+      stream: _registerBloc.randomGeneratedNickname,
+      builder:
+        (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        print('AnimatedIconButton rebuilt');
+        return Align(
+          alignment: Alignment.centerRight,
+          child: AppAnimatedIconButton(
+            runAnimation: snapshot.data,
+            icon: FaIcon(
+              FontAwesomeIcons.random,
+            ),
+            startingSize: 20,
+            endingSize: 24,
+            onPressed: () {
+              _registerBloc.onGenerateNicknameButtonPressed();
+              if (nicknameNode.hasPrimaryFocus) {
+                nicknameNode.unfocus();
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _emailFormField(){
+    return BasicStreamTextFormField(
+      stream: _registerBloc.email,
+      labelText: 'Email',
+      hintText: 'myemail@gmail.com',
+      onChanged: _registerBloc.onEmailChanged,
+      textInputAction: TextInputAction.next,
+      currentFocusNode: emailNode,
+      nextFocusNode: passwordNode,
+      validator: _registerBloc.validateRequiredField,
+    );
+  }
+
+  Widget _passwordFormField(){
+    return BasicStreamTextFormField(
+      stream: _registerBloc.password,
+      labelText: 'Password',
+      hintText: '********',
+      onChanged: _registerBloc.onPasswordChanged,
+      textInputAction: TextInputAction.done,
+      currentFocusNode: passwordNode,
+      obscureText: true,
+      validator: _registerBloc.validateRequiredField,
     );
   }
 }

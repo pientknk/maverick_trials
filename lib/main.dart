@@ -11,6 +11,7 @@ import 'package:maverick_trials/locator.dart';
 import 'package:maverick_trials/ui/router.dart';
 import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 import 'package:maverick_trials/ui/views/splash_view.dart';
+import 'package:maverick_trials/ui/widgets/app_theme.dart';
 import 'package:maverick_trials/ui/widgets/main_scaffold.dart';
 
 void main() {
@@ -35,10 +36,16 @@ void main() {
 class App extends StatelessWidget {
   final UserRepository userRepository;
 
+  //TODO: look into AnimatedSwitcher to switch between widgets with animation
+
   App({Key key, @required this.userRepository}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    AppTheme appTheme = AppTheme(isDark: true)
+      ..accentColor = Colors.grey
+      ..backgroundColor = Colors.black;
+
     return GestureDetector(
         onTap: () {
           FocusScopeNode currentFocus = FocusScope.of(context);
@@ -49,7 +56,7 @@ class App extends StatelessWidget {
         },
         child: MaterialApp(
           title: 'Mav Trials',
-          theme: ThemeData(primarySwatch: Colors.green),
+          theme: appTheme.themeData,
           home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
             builder: (BuildContext context, AuthenticationState state) {
               if (state is AuthenticationInitialState) {
@@ -62,6 +69,7 @@ class App extends StatelessWidget {
               }
 
               if (state is AuthenticationFailureState) {
+                print(state);
                 print('loginview');
                 return LoginView(
                   userRepository: userRepository,

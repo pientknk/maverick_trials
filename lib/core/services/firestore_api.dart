@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:maverick_trials/core/models/search_item.dart';
 
 class FirestoreAPI {
   final Firestore _db = Firestore.instance;
@@ -19,20 +20,27 @@ class FirestoreAPI {
   }
 
   Future<QuerySnapshot> getDocumentByField(
-      String path, String fieldName, String value) {
+    {SearchItem searchItem}) {
     return _db
-        .collection(path)
+        .collection(searchItem.collectionName)
         .limit(1)
-        .where(fieldName, isEqualTo: value)
+        .where(searchItem.fieldName, isEqualTo: searchItem.value)
         .getDocuments();
   }
 
-  Future<QuerySnapshot> getDataCollection(String path, {int limit = 10}) {
-    return _db.collection(path).limit(limit).getDocuments();
+  Future<QuerySnapshot> getDataCollection(SearchItem searchItem, {int limit = 10}) {
+    return _db.collection(searchItem.collectionName).limit(limit).getDocuments();
   }
 
-  Stream<QuerySnapshot> streamDataCollection(String path, {int limit = 10}) {
-    return _db.collection(path).limit(limit).snapshots();
+  Stream<QuerySnapshot> getStreamDataCollection(SearchItem searchItem,
+    {int limit = 10,}){
+    return _db.collection(searchItem.collectionName).limit(limit).snapshots();
+  }
+
+  Stream<QuerySnapshot> getStreamDataCollectionByField(SearchItem searchItem, {int limit = 10}){
+    return _db.collection(searchItem.collectionName)
+      .limit(limit)
+      .where(searchItem.collectionName, isEqualTo: searchItem.value).snapshots();
   }
 
   Future<DocumentSnapshot> getDocumentById(String path, String id) {
@@ -52,10 +60,19 @@ class FirestoreAPI {
     return _db.collection(path).document(id).delete();
   }
 
-  Future<DocumentReference> addDocument(String path, Map data) {
-    return _db.collection(path).add(data).catchError((error) {
-      print('Error in add document firestore api: $error');
-    });
+  Future<bool> addDocument(String path, Map data, {String docID}) async {
+    bool success = true;
+    if(docID == null) {
+      await _db.collection(path).add(data).catchError((error) {
+        success = false;
+        print('Error in add document firestore api: $error');
+      });
+    }
+    else{
+      await _db.collection(path).document(docID).setData(data, merge: true);
+    }
+
+    return success;
   }
 
   Future<void> updateDocument(String path, Map data, String id) {
@@ -68,4 +85,5 @@ class FirestoreAPI {
   static const int gamesSnapshotLimit = 2;
   static const String usersCollection = "users";
   static const int usersSnapshotLimit = 2;
+  static const String settingsCollection = 'settings';
 }
