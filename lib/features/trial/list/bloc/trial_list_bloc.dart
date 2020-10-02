@@ -1,14 +1,15 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
 import 'package:maverick_trials/core/models/filter_item.dart';
 import 'package:maverick_trials/core/models/sort_item.dart';
 import 'package:maverick_trials/core/models/trial.dart';
-import 'package:maverick_trials/core/repository/trial_repository.dart';
+import 'package:maverick_trials/core/repository/trial/firebase_trial_repository.dart';
 import 'package:maverick_trials/features/trial/list/bloc/trial_list.dart';
 import 'package:maverick_trials/locator.dart';
 
 class TrialListBloc extends Bloc<TrialListEvent, TrialListState>{
-  final TrialRepository trialRepository = locator<TrialRepository>();
+  final FirebaseTrialRepository trialRepository = locator<FirebaseTrialRepository>();
 
   List<FilterItem> filterItems = List();
   List<SortItem> sortItems = List();
@@ -18,6 +19,10 @@ class TrialListBloc extends Bloc<TrialListEvent, TrialListState>{
 
   @override
   Stream<TrialListState> mapEventToState(TrialListEvent event) async* {
+    if(event is TrialListRefreshEvent){
+      yield* _mapTrialListRefreshEventToState(event);
+    }
+
     if(event is SearchTextChangedEvent){
       yield* _mapSearchTextChangedEventToState(event);
     }
@@ -40,6 +45,17 @@ class TrialListBloc extends Bloc<TrialListEvent, TrialListState>{
 
     if(event is SortRemovedEvent){
       yield* _mapSortRemovedEventToState(event);
+    }
+  }
+
+  Stream<TrialListState> _mapTrialListRefreshEventToState(TrialListRefreshEvent event) async* {
+    try{
+        List<Trial> results = await trialRepository.getTrials();
+        yield SearchEmptyState(results);
+    }
+    catch(error){
+      String errorMsg = FirestoreExceptionHandler.tryGetPlatformExceptionMessage(error);
+      yield SearchErrorState(errorMsg);
     }
   }
 

@@ -1,9 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
 import 'package:maverick_trials/core/models/trial.dart';
 import 'package:maverick_trials/core/models/user.dart';
-import 'package:maverick_trials/core/repository/trial_repository.dart';
+import 'package:maverick_trials/core/repository/trial/firebase_trial_repository.dart';
 import 'package:maverick_trials/core/validation/length_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
@@ -20,7 +21,7 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     with RequiredFieldValidator, LengthValidator, RequiredLengthValidator {
   final AuthenticationBloc authBloc;
   final Trial trial;
-  final trialRepository = locator<TrialRepository>();
+  final trialRepository = locator<FirebaseTrialRepository>();
 
   final formKey = GlobalKey<FormState>();
 
@@ -28,7 +29,7 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
   final BehaviorSubject<String> _descriptionController =
       BehaviorSubject<String>();
   final BehaviorSubject<String> _trialTypeController =
-      BehaviorSubject<String>.seeded('Group');
+      BehaviorSubject<String>();
   final BehaviorSubject<String> _winCondController = BehaviorSubject<String>();
   final BehaviorSubject<String> _rulesController = BehaviorSubject<String>();
   final BehaviorSubject<String> _tieBreakerController =
@@ -79,18 +80,18 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
       .transform(validateLength(max: kFieldMaxLength));
 
   /// for the state of the submit button
-  Stream<bool> get canSubmit => Rx.combineLatest4(
+  Stream<bool> get canSubmit => Rx.combineLatest3(
     name,
     description,
-    trialType,
     winCondition,
-    (a, b, c, d,) => true);
+    (a, b, c,) => true);
 
   Future<Trial> createNewTrial() async {
     Trial trial = Trial.newTrial();
     _setTrial(trial);
 
     User user = await authBloc.userRepository.getCurrentUser();
+    trial.uID = user.userUID;
     trial.creatorUserCareerID = user.nickname;
     trial.createdTime = DateTime.now();
     trial.trialRunCount = 0;
@@ -121,15 +122,22 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
   Stream<TrialAddEditState> _mapAddTrialEventToState(
       AddTrialEvent event) async* {
     yield StateSaving();
+
     if(validateForm()){
-      Trial trial = await createNewTrial();
+      try{
+        Trial trial = await createNewTrial();
 
-      await trialRepository.addTrial(trial);
+        await trialRepository.addTrial(trial);
 
-      yield AddTrialStateSuccess(trial);
+        yield AddTrialStateSuccess(trial);
+      }
+      catch(error, stacktrace){
+        print(stacktrace);
+        yield FailureState(FirestoreExceptionHandler.tryGetPlatformExceptionMessage(error));
+      }
     }
     else{
-      yield FailureState('There are errors in the form');
+      yield FailureState('Please fix all errors in the form');
     }
 
   }

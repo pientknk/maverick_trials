@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
 import 'package:maverick_trials/features/reset_password/bloc/reset_password.dart';
 import 'package:maverick_trials/features/reset_password/ui/reset_password_form.dart';
 
 class ResetPasswordView extends StatelessWidget {
-  final UserRepository _userRepository;
+  final FirebaseUserRepository _userRepository;
 
-  ResetPasswordView({Key key, @required UserRepository userRepository})
+  ResetPasswordView({Key key, @required FirebaseUserRepository userRepository})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);

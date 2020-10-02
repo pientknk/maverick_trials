@@ -1,15 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/game.dart';
-import 'package:maverick_trials/core/repository/game_repository.dart';
+import 'package:maverick_trials/core/repository/game/firebase_game_repository.dart';
 import 'package:maverick_trials/features/game/list/bloc/game_list_event.dart';
 import 'package:maverick_trials/features/game/list/bloc/game_list_state.dart';
 import 'package:maverick_trials/locator.dart';
 
 class GameListBloc extends Bloc<GameListEvent, GameListState> {
-  final GameRepository gameRepository = locator<GameRepository>();
+  final FirebaseGameRepository gameRepository = locator<FirebaseGameRepository>();
 
   @override
-  // TODO: implement initialState
   GameListState get initialState => DefaultState();
 
   @override
@@ -33,7 +32,7 @@ class GameListBloc extends Bloc<GameListEvent, GameListState> {
         yield SearchEmptyState(results);
       }
       else{
-        //TODO: this will need to filter the results based off the search
+        //TODO: this will need to filter the results based off the search eventually
         List<Game> results = await gameRepository.getGames();
         yield SearchSuccessState(results);
       }

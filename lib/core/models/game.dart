@@ -1,15 +1,16 @@
 import 'dart:core';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:maverick_trials/core/repository/game_repository.dart';
+import 'package:maverick_trials/core/repository/game/firebase_game_repository.dart';
 
 //FS
 //Read only except for the creator
 class Game {
   //A reference to a Firestore document representing this accolade
   DocumentReference reference; //reference.documentID == GameID
+  String uID;
   DateTime createdTime;
-  String creatorUserCareerID;
+  String creatorUserCareerID;// this should be user.nickname
   String name;
   String description;
   int gameUserCount;
@@ -17,6 +18,8 @@ class Game {
   List<String> trialIDs;
   int trialCount;
   String trialBossOption;
+  int minPlayerCount;
+  int maxPlayerCount;
   int gameRunCount;
 
   Game.newGame();
@@ -31,7 +34,10 @@ class Game {
       this.trialIDs,
       this.trialCount,
       this.trialBossOption,
-      this.gameRunCount});
+      this.gameRunCount,
+      this.minPlayerCount,
+      this.maxPlayerCount,
+      this.uID});
 
   factory Game.fromJson(Map<dynamic, dynamic> json) => _gameFromJson(json);
 
@@ -44,43 +50,49 @@ class Game {
 Game _gameFromJson(Map<dynamic, dynamic> json) {
   return Game(
     createdTime:
-        (json[GameRepository.dbFieldNames[GameFields.createdTime]] as Timestamp)
+        (json[FirebaseGameRepository.dbFieldNames[GameFields.createdTime]] as Timestamp)
             .toDate(),
     creatorUserCareerID:
-        json[GameRepository.dbFieldNames[GameFields.creatorUserCareerID]]
+        json[FirebaseGameRepository.dbFieldNames[GameFields.creatorUserCareerID]]
             as String,
-    name: json[GameRepository.dbFieldNames[GameFields.name]] as String,
+    name: json[FirebaseGameRepository.dbFieldNames[GameFields.name]] as String,
     description:
-        json[GameRepository.dbFieldNames[GameFields.description]] as String,
+        json[FirebaseGameRepository.dbFieldNames[GameFields.description]] as String,
     gameUserCount:
-        json[GameRepository.dbFieldNames[GameFields.gameUserCount]] as int,
-    ratingID: json[GameRepository.dbFieldNames[GameFields.ratingID]] as String,
+        json[FirebaseGameRepository.dbFieldNames[GameFields.gameUserCount]] as int,
+    ratingID: json[FirebaseGameRepository.dbFieldNames[GameFields.ratingID]] as String,
     trialIDs: List.from(
-        json[GameRepository.dbFieldNames[GameFields.trialIDs]] ?? List()),
-    trialCount: json[GameRepository.dbFieldNames[GameFields.trialCount]] as int,
+        json[FirebaseGameRepository.dbFieldNames[GameFields.trialIDs]] ?? List()),
+    trialCount: json[FirebaseGameRepository.dbFieldNames[GameFields.trialCount]] as int,
     trialBossOption:
-        json[GameRepository.dbFieldNames[GameFields.trialBossOption]] as String,
+        json[FirebaseGameRepository.dbFieldNames[GameFields.trialBossOption]] as String,
     gameRunCount:
-        json[GameRepository.dbFieldNames[GameFields.gameRunCount]] as int,
+        json[FirebaseGameRepository.dbFieldNames[GameFields.gameRunCount]] as int,
+    minPlayerCount: json[FirebaseGameRepository.dbFieldNames[GameFields.minPlayerCount]] as int,
+    maxPlayerCount: json[FirebaseGameRepository.dbFieldNames[GameFields.maxPlayerCount]] as int,
+    uID: json[FirebaseGameRepository.dbFieldNames[GameFields.uID]] as String,
   );
 }
 
 Map<String, dynamic> _gameToJson(Game instance) => <String, dynamic>{
-      GameRepository.dbFieldNames[GameFields.createdTime]:
+      FirebaseGameRepository.dbFieldNames[GameFields.createdTime]:
           Timestamp.fromDate(instance.createdTime),
-      GameRepository.dbFieldNames[GameFields.creatorUserCareerID]:
+      FirebaseGameRepository.dbFieldNames[GameFields.creatorUserCareerID]:
           instance.creatorUserCareerID,
-      GameRepository.dbFieldNames[GameFields.name]: instance.name,
-      GameRepository.dbFieldNames[GameFields.description]: instance.description,
-      GameRepository.dbFieldNames[GameFields.gameUserCount]:
+      FirebaseGameRepository.dbFieldNames[GameFields.name]: instance.name,
+      FirebaseGameRepository.dbFieldNames[GameFields.description]: instance.description,
+      FirebaseGameRepository.dbFieldNames[GameFields.gameUserCount]:
           instance.gameUserCount,
-      GameRepository.dbFieldNames[GameFields.ratingID]: instance.ratingID,
-      GameRepository.dbFieldNames[GameFields.trialIDs]: instance.trialIDs,
-      GameRepository.dbFieldNames[GameFields.trialCount]: instance.trialCount,
-      GameRepository.dbFieldNames[GameFields.trialBossOption]:
+      FirebaseGameRepository.dbFieldNames[GameFields.ratingID]: instance.ratingID,
+      FirebaseGameRepository.dbFieldNames[GameFields.trialIDs]: instance.trialIDs,
+      FirebaseGameRepository.dbFieldNames[GameFields.trialCount]: instance.trialCount,
+      FirebaseGameRepository.dbFieldNames[GameFields.trialBossOption]:
           instance.trialBossOption,
-      GameRepository.dbFieldNames[GameFields.gameRunCount]:
+      FirebaseGameRepository.dbFieldNames[GameFields.gameRunCount]:
           instance.gameRunCount,
+      FirebaseGameRepository.dbFieldNames[GameFields.minPlayerCount]: instance.minPlayerCount,
+      FirebaseGameRepository.dbFieldNames[GameFields.maxPlayerCount]: instance.maxPlayerCount,
+      FirebaseGameRepository.dbFieldNames[GameFields.uID]: instance.uID,
     };
 
 Map<GameFields, String> friendlyFieldNames = <GameFields, String>{
@@ -93,6 +105,7 @@ Map<GameFields, String> friendlyFieldNames = <GameFields, String>{
   GameFields.trialCount: 'Trials',
   GameFields.gameRunCount: 'Games Played',
   GameFields.trialBossOption: 'Trial Boss Option',
+  GameFields.uID: 'Creator ID',
 };
 
 enum GameFields {
@@ -106,4 +119,7 @@ enum GameFields {
   trialCount,
   gameRunCount,
   trialBossOption,
+  minPlayerCount,
+  maxPlayerCount,
+  uID,
 }

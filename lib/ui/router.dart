@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:maverick_trials/features/home/ui/home_view.dart';
 import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_view.dart';
-import 'package:maverick_trials/ui/widgets/main_scaffold.dart';
 
 class Router {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case homeRoute:
-        return MaterialPageRoute(builder: (_) => MainScaffold());
+        return MaterialPageRoute(builder: (_) => HomeView());
       case addTrialRoute:
         return MaterialPageRoute(builder: (_) => TrialAddEditView());
       default:

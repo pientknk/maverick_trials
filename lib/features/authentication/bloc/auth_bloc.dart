@@ -1,19 +1,18 @@
 import 'package:bloc/bloc.dart';
-import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/core/repository/settings/firebase_settings_repository.dart';
+import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth_event.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth_state.dart';
+import 'package:maverick_trials/locator.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState>
     with RequiredFieldValidator, RequiredLengthValidator, EmailValidator {
-  final UserRepository userRepository;
-
-  AuthenticationBloc({@required this.userRepository})
-      : assert(userRepository != null);
+  final userRepository = locator<FirebaseUserRepository>();
+  final settingsRepository = locator<FirebaseSettingsRepository>();
 
   final BehaviorSubject<String> _usernameController = BehaviorSubject<String>();
   final BehaviorSubject<String> _emailController = BehaviorSubject<String>();
@@ -69,16 +68,24 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState>
 
   Stream<AuthenticationState> _mapAuthenticationStartedToState() async* {
     final isSignedIn = await userRepository.isSignedIn();
-    if (isSignedIn) {
-      final name = await userRepository.getAuthUser();
-      yield AuthenticationSuccessState(name: name);
-    } else {
+    final authUser = await userRepository.getAuthUser();
+    print('_mapAuthenticationStartedToState - isSignedIn: $isSignedIn, authUser: ${authUser?.email}');
+    if (isSignedIn && authUser != null) {
+      yield AuthenticationSuccessState(name: authUser.email);
+    }
+    else {
       yield AuthenticationFailureState(error: 'Unable to sign in');
     }
   }
 
   Stream<AuthenticationState> _mapAuthenticationLoggedInToState() async* {
-    yield AuthenticationSuccessState(name: await userRepository.getAuthUser());
+    final authUser = await userRepository.getAuthUser();
+    if(authUser != null){
+      yield AuthenticationSuccessState(name: authUser.email);
+    }
+    else{
+      yield AuthenticationFailureState(error: 'Unable to authenticate user');
+    }
   }
 
   Stream<AuthenticationState> _mapAuthenticationLoggedOutToState() async* {

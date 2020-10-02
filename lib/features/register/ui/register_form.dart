@@ -3,13 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:maverick_trials/features/register/bloc/register.dart';
 import 'package:maverick_trials/features/register/ui/verify_email_dialog.dart';
-import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 import 'package:maverick_trials/ui/widgets/app_animated_icon_button.dart';
 import 'package:maverick_trials/ui/widgets/app_buttons.dart';
+import 'package:maverick_trials/ui/widgets/app_snack_bar.dart';
 import 'package:maverick_trials/ui/widgets/app_text_fields.dart';
 import 'package:maverick_trials/ui/widgets/app_texts.dart';
 
 class RegisterForm extends StatefulWidget {
+  final String email;
+  final String password;
+
+  RegisterForm({this.email, this.password});
+
   @override
   _RegisterFormState createState() => _RegisterFormState();
 }
@@ -48,27 +53,15 @@ class _RegisterFormState extends State<RegisterForm> {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Registering...'),
-                    BasicProgressIndicator(),
-                  ],
-                ),
-                duration: Duration(seconds: 1),
-              ),
+              AppSnackBar(
+                leading: CircularProgressIndicator(),
+                text: 'Registering...',
+                durationInMs: 1750,
+              ).build(),
             );
         }
 
         if (state.isSuccess) {
-          //we don't want to do this, we should have them verify their address first
-          /*
-          BlocProvider.of<AuthenticationBloc>(context).add(
-            AuthenticationLoggedInEvent(name: state.isSuccess.toString())
-          );
-
-           */
           showDialog(
             barrierDismissible: false,
             context: context,
@@ -82,22 +75,23 @@ class _RegisterFormState extends State<RegisterForm> {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Icon(Icons.error),
-                    Text('Registration Failed'),
-                  ],
-                ),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 2),
-              ),
+              AppSnackBar(
+                text: 'Registration Failed',
+                durationInMs: 2500,
+                leading: Icon(Icons.error),
+                appSnackBarType: AppSnackBarType.error,
+                action: SnackBarAction(
+                  label: 'Details',
+                  onPressed: (){
+
+                })
+              ).build(),
             );
         }
       },
       child: BlocBuilder<RegisterBloc, RegisterState>(
         builder: (BuildContext context, RegisterState state) {
+          print('register form rebuilt within blocbuilder');
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Form(
@@ -197,6 +191,7 @@ class _RegisterFormState extends State<RegisterForm> {
   }
 
   Widget _emailFormField(){
+    print('email value ${widget.email}');
     return BasicStreamTextFormField(
       stream: _registerBloc.email,
       labelText: 'Email',
@@ -206,6 +201,7 @@ class _RegisterFormState extends State<RegisterForm> {
       currentFocusNode: emailNode,
       nextFocusNode: passwordNode,
       validator: _registerBloc.validateRequiredField,
+      initialValue: widget.email,
     );
   }
 
@@ -219,6 +215,7 @@ class _RegisterFormState extends State<RegisterForm> {
       currentFocusNode: passwordNode,
       obscureText: true,
       validator: _registerBloc.validateRequiredField,
+      initialValue: widget.password,
     );
   }
 }

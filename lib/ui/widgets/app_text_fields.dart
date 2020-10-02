@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
+import 'package:maverick_trials/features/register/bloc/register.dart';
+import 'package:maverick_trials/utils/constants.dart';
 
 _fieldFocusChange(
     BuildContext context, FocusNode currentFocusNode, FocusNode nextFocusNode) {
@@ -12,7 +14,7 @@ _fieldFocusChange(
   }
 }
 
-_unfocusField(BuildContext context) {
+_dismissFocus(BuildContext context) {
   FocusScopeNode currentFocus = FocusScope.of(context);
 
   if (!currentFocus.hasPrimaryFocus) {
@@ -96,7 +98,6 @@ class _BasicStreamTextFormFieldState extends State<BasicStreamTextFormField>
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-      //color: Colors.grey,
       child: widget.suffixIcon == null
           ? _buildStreamBuilder()
           : Stack(
@@ -114,9 +115,10 @@ class _BasicStreamTextFormFieldState extends State<BasicStreamTextFormField>
         stream: widget.stream,
         builder: (context, snapshot) {
           return TextFormField(
+            //cursorColor: Colors.green,
+            maxLines: null,
             controller: widget.controller,
             obscureText: widget.obscureText,
-            initialValue: widget.initialValue,
             focusNode: widget.currentFocusNode,
             onFieldSubmitted: (_) {
               if (widget.textInputAction != null) {
@@ -126,7 +128,7 @@ class _BasicStreamTextFormFieldState extends State<BasicStreamTextFormField>
                         context, widget.currentFocusNode, widget.nextFocusNode);
                     break;
                   case TextInputAction.done:
-                    _unfocusField(context);
+                    _dismissFocus(context);
                     break;
                   default:
                     print(
@@ -140,36 +142,10 @@ class _BasicStreamTextFormFieldState extends State<BasicStreamTextFormField>
               hintText: widget.hintText,
               errorText: snapshot.error,
               helperText: widget.requiredField ? '*Required' : null,
-              filled: false,
-              /*contentPadding: widget.suffixIcon != null
-                  ? const EdgeInsets.fromLTRB(12, 12, 52, 12)
-                  : null,
-
-               */
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white, width: 1.0),
-                borderRadius: BorderRadius.circular(6.0),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.redAccent[400], width: 1.0),
-                borderRadius: BorderRadius.circular(6.0),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.blueAccent, width: 1.0),
-                borderRadius: BorderRadius.circular(6.0),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey, width: 1.0),
-                borderRadius: BorderRadius.circular(6.0),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.redAccent[400], width: 1.0),
-                borderRadius: BorderRadius.circular(6.0),
-              ),
-              isDense: true,
             ),
             textInputAction: widget.textInputAction,
             onChanged: widget.onChanged,
+            initialValue: widget.initialValue,
             validator: widget.requiredField ? validateRequiredField : null,
           );
         });
@@ -182,6 +158,7 @@ class BasicStreamDropDownFormField extends StatefulWidget {
   final String hintText;
   final List<DropdownMenuItem<String>> menuItems;
   final ValueChanged<String> onChanged;
+  final String initialValue;
 
   BasicStreamDropDownFormField({
     Key key,
@@ -190,6 +167,7 @@ class BasicStreamDropDownFormField extends StatefulWidget {
     @required this.hintText,
     @required this.menuItems,
     @required this.onChanged,
+    this.initialValue,
   }) : super(key: key);
 
   @override
@@ -207,11 +185,10 @@ class _BasicStreamDropDownFormFieldState
         stream: widget.stream,
         builder: (context, snapshot) {
           return DropdownButtonFormField<String>(
-            value: snapshot.data,
+            value: snapshot.data ?? widget.initialValue,
             decoration: InputDecoration(
               labelText: widget.labelText,
               hintText: widget.hintText,
-              filled: true,
             ),
             items: widget.menuItems,
             onChanged: widget.onChanged,
@@ -221,3 +198,42 @@ class _BasicStreamDropDownFormFieldState
     );
   }
 }
+
+class SwitchListTileStreamField extends StatefulWidget {
+  final Stream<bool> stream;
+  final bool initialValue;
+  final Widget title;
+  final Widget subtitle;
+  final ValueChanged<bool> onChanged;
+
+  SwitchListTileStreamField({Key key,
+    @required this.stream,
+    @required this.title,
+  @required this.initialValue,
+    @required this.onChanged,
+  this.subtitle,}) : super(key: key);
+
+  @override
+  _SwitchListTileStreamFieldState createState() => _SwitchListTileStreamFieldState();
+}
+
+class _SwitchListTileStreamFieldState extends State<SwitchListTileStreamField> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: StreamBuilder<bool>(
+        initialData: widget.initialValue,
+        stream: widget.stream,
+        builder: (context, snapshot){
+          return SwitchListTile(
+            title: widget.title,
+            subtitle: widget.subtitle,
+            value: snapshot.data ?? false,
+            onChanged: widget.onChanged,
+          );
+        },
+      ),
+    );
+  }
+}
+

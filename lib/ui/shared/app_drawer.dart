@@ -1,17 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
+import 'package:maverick_trials/core/models/settings.dart';
+import 'package:maverick_trials/core/repository/settings/firebase_settings_repository.dart';
+import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
 import 'package:maverick_trials/features/settings/ui/settings_view.dart';
-import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
+import 'package:maverick_trials/locator.dart';
 import 'package:maverick_trials/ui/shared/logout_button.dart';
 
 class AppDrawer extends StatelessWidget {
-  final UserRepository userRepository;
-
-  AppDrawer({Key key, @required UserRepository userRepository})
-      : assert(userRepository != null),
-        userRepository = userRepository,
-        super(key: key);
+  final userRepository = locator<FirebaseUserRepository>();
+  final settingsRepository = locator<FirebaseSettingsRepository>();
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +30,7 @@ class AppDrawer extends StatelessWidget {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.all(5.0),
@@ -39,26 +39,38 @@ class AppDrawer extends StatelessWidget {
                       size: 40.0,
                     ),
                   ),
-                  Expanded(
+                  Padding(
+                    padding: const EdgeInsets.all(5.0),
                     child: FutureBuilder<String>(
                       builder: (context, snapshot) {
                         return _buildDrawerNickname(snapshot);
                       },
-                      future: getNickname(),
+                      future: userRepository.nickname,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 5.0),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.settings,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SettingsView(),
-                          )
+                    child: FutureBuilder<Settings>(
+                      future: getSettings(),
+                      builder: (context, snapshot){
+                        return IconButton(
+                          icon: Icon(
+                            Icons.settings,
+                          ),
+                          onPressed: () {
+                            if(!snapshot.hasData){
+                              print('settings is null, what da heck');
+                              //TODO: maybe have a popup dialogue for the error?
+                            }
+                            else{
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                    SettingsView(settings: snapshot.data),
+                                ));
+                            }
+                          },
                         );
                       },
                     ),
@@ -88,7 +100,7 @@ class AppDrawer extends StatelessWidget {
               }),
           LogOutButton(),
           ListTile(
-            title: Text('v0.0.1'),
+            title: Center(child: Text('v0.0.1')),
             onTap: () {},
           ),
         ],
@@ -96,23 +108,27 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Future<String> getNickname() async {
-    final user = await userRepository.getCurrentUser();
-    return user.nickname;
+  Future<Settings> getSettings() async {
+    try{
+      String uid = (await userRepository.getCurrentUser()).userUID;
+      return await settingsRepository.getSettings(id: uid);
+    }
+    catch(error){
+      print(FirestoreExceptionHandler.tryGetPlatformExceptionMessage(error));
+      return null;
+    }
   }
 
   Widget _buildDrawerNickname(AsyncSnapshot<String> snapshot) {
-    if (snapshot.hasData) {
+    if(snapshot.hasData){
       return Text(
         snapshot.data,
         style: TextStyle(
-            color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w400),
+          color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.w400),
       );
-    } else {
-      return SizedBox(
-        width: 25,
-        child: BasicProgressIndicator(),
-      );
+    }
+    else{
+      return Container();
     }
   }
 

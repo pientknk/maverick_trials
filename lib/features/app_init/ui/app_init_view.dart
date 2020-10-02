@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
 import 'package:maverick_trials/features/app_init/bloc/app_init_bloc.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth_bloc.dart';
 import 'package:maverick_trials/features/login/bloc/login_bloc.dart';
 import 'package:maverick_trials/features/login/bloc/login_event.dart';
 
 class ApplicationInitializationView extends StatefulWidget {
-  final UserRepository userRepository;
+  final FirebaseUserRepository userRepository;
 
   ApplicationInitializationView({@required this.userRepository});
 
@@ -26,7 +26,6 @@ class _ApplicationInitializationViewState
       create: (BuildContext context) {
         return LoginBloc(
           authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
-          userRepository: widget.userRepository,
         )..add(LoginInitialEvent());
       },
     );

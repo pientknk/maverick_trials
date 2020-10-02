@@ -1,21 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:maverick_trials/core/repository/trial_repository.dart';
+import 'package:maverick_trials/core/repository/trial/firebase_trial_repository.dart';
 
 //FS
 //Read only except for the creator
 class Trial {
   //A reference to a Firestore document representing this trial
   DocumentReference reference; //reference.documentID == TrialID
+  String uID; //the firestore user uid
   DateTime createdTime;
   String creatorUserCareerID; //this is the same as user nickname
   String name;
   String description;
-  bool lockedByCreator;
   String rules;
   String winCondition;
   String tieBreaker;
-  String ratingID; //ratingID == this.name
+  String ratingID; //ratingID == this.name of trial
   int trialRunCount;
   String trialType;
   String requirements;
@@ -35,7 +35,8 @@ class Trial {
       this.trialRunCount,
       this.requirements,
       this.gameCount,
-      this.reference}) {
+      this.reference,
+      this.uID}) {
     this.ratingID = this.name;
     //this.lockedByCreator = true; //assign this value from user prefs setting
   }
@@ -44,8 +45,7 @@ class Trial {
 
   Map<String, dynamic> toJson() => _trialToJson(this);
 
-  static Map<TrialFields, String> friendlyFieldNames =
-      <TrialFields, String>{
+  static Map<TrialFields, String> friendlyFieldNames = <TrialFields, String>{
     TrialFields.createdTime: 'Created Time',
     TrialFields.creatorUserCareerID: 'Creator',
     TrialFields.name: 'Name',
@@ -57,6 +57,7 @@ class Trial {
     TrialFields.trialType: 'Trial Type',
     TrialFields.requirements: 'Requirements',
     TrialFields.gameCount: 'Games',
+    TrialFields.uID: 'Creator ID',
   };
 
   @override
@@ -65,33 +66,51 @@ class Trial {
 
 Trial _trialFromJson(Map<dynamic, dynamic> json) {
   return Trial(
-      createdTime: (json[TrialRepository.dbFieldNames[TrialFields.createdTime]]
+      createdTime: (json[FirebaseTrialRepository.dbFieldNames[TrialFields.createdTime]]
               as Timestamp)
           .toDate(),
-      creatorUserCareerID: json[TrialRepository.dbFieldNames[TrialFields.creatorUserCareerID]] as String,
-      name: json[TrialRepository.dbFieldNames[TrialFields.name]] as String,
-      description: json[TrialRepository.dbFieldNames[TrialFields.description]] as String,
-      rules: json[TrialRepository.dbFieldNames[TrialFields.rules]] as String,
-      winCondition: json[TrialRepository.dbFieldNames[TrialFields.winCondition]] as String,
-      trialType: json[TrialRepository.dbFieldNames[TrialFields.trialType]] as String,
-      tieBreaker: json[TrialRepository.dbFieldNames[TrialFields.tieBreaker]] as String,
-      trialRunCount: json[TrialRepository.dbFieldNames[TrialFields.trialRunCount]] as int ?? 0,
-      requirements: json[TrialRepository.dbFieldNames[TrialFields.requirements]] as String,
-      gameCount: json[TrialRepository.dbFieldNames[TrialFields.gameCount]] as int ?? 0);
+      creatorUserCareerID:
+          json[FirebaseTrialRepository.dbFieldNames[TrialFields.creatorUserCareerID]]
+              as String,
+      name: json[FirebaseTrialRepository.dbFieldNames[TrialFields.name]] as String,
+      description:
+          json[FirebaseTrialRepository.dbFieldNames[TrialFields.description]] as String,
+      rules: json[FirebaseTrialRepository.dbFieldNames[TrialFields.rules]] as String,
+      winCondition: json[FirebaseTrialRepository.dbFieldNames[TrialFields.winCondition]]
+          as String,
+      trialType:
+          json[FirebaseTrialRepository.dbFieldNames[TrialFields.trialType]] as String,
+      tieBreaker:
+          json[FirebaseTrialRepository.dbFieldNames[TrialFields.tieBreaker]] as String,
+      trialRunCount:
+          json[FirebaseTrialRepository.dbFieldNames[TrialFields.trialRunCount]]
+                  as int ?? 0,
+      requirements: json[FirebaseTrialRepository.dbFieldNames[TrialFields.requirements]]
+          as String,
+      gameCount:
+          json[FirebaseTrialRepository.dbFieldNames[TrialFields.gameCount]] as int ?? 0,
+      uID: json[FirebaseTrialRepository.dbFieldNames[TrialFields.uID]] as String);
 }
 
 Map<String, dynamic> _trialToJson(Trial instance) => <String, dynamic>{
-  TrialRepository.dbFieldNames[TrialFields.createdTime]: Timestamp.fromDate(instance.createdTime),
-  TrialRepository.dbFieldNames[TrialFields.creatorUserCareerID]: instance.creatorUserCareerID,
-  TrialRepository.dbFieldNames[TrialFields.name]: instance.name,
-  TrialRepository.dbFieldNames[TrialFields.description]: instance.description,
-  TrialRepository.dbFieldNames[TrialFields.rules]: instance.rules,
-  TrialRepository.dbFieldNames[TrialFields.winCondition]: instance.winCondition,
-  TrialRepository.dbFieldNames[TrialFields.tieBreaker]: instance.tieBreaker,
-  TrialRepository.dbFieldNames[TrialFields.trialRunCount]: instance.trialRunCount,
-  TrialRepository.dbFieldNames[TrialFields.trialType]: instance.trialType,
-  TrialRepository.dbFieldNames[TrialFields.requirements]: instance.requirements,
-  TrialRepository.dbFieldNames[TrialFields.gameCount]: instance.gameCount
+      FirebaseTrialRepository.dbFieldNames[TrialFields.createdTime]:
+          Timestamp.fromDate(instance.createdTime),
+      FirebaseTrialRepository.dbFieldNames[TrialFields.creatorUserCareerID]:
+          instance.creatorUserCareerID,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.name]: instance.name,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.description]:
+          instance.description,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.rules]: instance.rules,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.winCondition]:
+          instance.winCondition,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.tieBreaker]: instance.tieBreaker,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.trialRunCount]:
+          instance.trialRunCount,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.trialType]: instance.trialType,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.requirements]:
+          instance.requirements,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.gameCount]: instance.gameCount,
+      FirebaseTrialRepository.dbFieldNames[TrialFields.uID]: instance.uID,
     };
 
 enum TrialFields {
@@ -106,4 +125,5 @@ enum TrialFields {
   trialType,
   requirements,
   gameCount,
+  uID,
 }

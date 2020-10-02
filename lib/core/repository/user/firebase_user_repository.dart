@@ -1,13 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:maverick_trials/core/models/search_item.dart';
 import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/repository.dart';
+import 'package:maverick_trials/core/repository/settings/firebase_settings_repository.dart';
 import 'package:maverick_trials/core/services/firestore_api.dart';
+import 'package:maverick_trials/locator.dart';
 
-class UserRepository extends Repository {
+class FirebaseUserRepository extends Repository {
   User _currentUser;
 
   Future<void> addUser(User user) async {
@@ -31,24 +34,36 @@ class UserRepository extends Repository {
   }
 
   Future<User> getUserByUID({@required String uid}) async {
-    QuerySnapshot snapshot = await dbAPI.getDocumentByField(
-      searchItem: SearchItem(
-        collectionName: FirestoreAPI.usersCollection,
-        fieldName: 'UUID',
-        value: uid,
-      ),
-    );
-    DocumentSnapshot userSnapshot = snapshot.documents.first;
-    return User.fromJson(userSnapshot.data);
+      QuerySnapshot snapshot = await dbAPI.getDocumentByField(
+        searchItem: SearchItem(
+          collectionName: FirestoreAPI.usersCollection,
+          fieldName: FirebaseUserRepository.dbFieldNames[UserFields.userUID],
+          value: uid,
+        ),
+      );
+      DocumentSnapshot userSnapshot = snapshot.documents.first;
+      return User.fromJson(userSnapshot.data);
   }
 
   Future<User> getCurrentUser() async {
+    print('_current user: ${_currentUser?.nickname}');
     if (_currentUser != null) {
       return _currentUser;
     }
 
-    String currentUserUid = await authAPI.currentUserUid();
-    _currentUser = await getUserByUID(uid: currentUserUid);
+    try{
+      String currentUserUid = await authAPI.currentUserUid();
+      print('current user uid: $currentUserUid');
+      _currentUser = await getUserByUID(uid: currentUserUid);
+    }
+    catch(e, st){
+      if(e is PlatformException){
+        print('Exception in getCurrentUser(): ${e.toString()} - $st');
+      }
+      else{
+        print('Exception in getCurrentUser(): An Unknown Error Occurred - $st');
+      }
+    }
 
     return _currentUser;
   }
@@ -77,34 +92,13 @@ class UserRepository extends Repository {
     return authAPI.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  String getErrorMsgForCode(String code) {
-    switch (code) {
-      case 'ERROR_INVALID_EMAIL':
-      case 'ERROR_WRONG_PASSWORD':
-      case 'ERROR_USER_NOT_FOUND':
-        return 'Incorrect email and or Password';
-        break;
-      case 'ERROR_USER_DISABLED':
-        return 'Please try again later';
-        break;
-      case 'ERROR_TOO_MANY_REQUESTS':
-        return 'You have entered too many incorrect email/password combinations. Try again later';
-        break;
-      case 'ERROR_OPERATION_NOT_ALLOWED':
-        return 'Login via email and password is currently not allowed';
-        break;
-      case 'ERROR_LOGIN_GOOGLE':
-        return 'Unable to log in using Google';
-        break;
-      case 'ERROR_NETWORK_REQUEST_FAILED':
-        return 'No internet connection found';
-      default:
-        return 'Error: $code';
-        break;
-    }
-  }
-
   Future<bool> get isEmailVerified => authAPI.isEmailVerified();
+
+  Future<String> get nickname async {
+    final user = await getCurrentUser();
+    print('nickname of user: ${user.nickname}');
+    return user.nickname;
+  }
 
   Future<bool> signUp(
       {@required String nickname,
@@ -126,6 +120,7 @@ class UserRepository extends Repository {
         email: email, password: password);
     if (authResult != null) {
       await _createUser(authResult, nickname);
+      await locator<FirebaseSettingsRepository>().addNewUserSettings();
       return true;
     }
 
@@ -138,32 +133,8 @@ class UserRepository extends Repository {
     return currentUser != null;
   }
 
-  //TODO: eventually this should be used to populate the user model with useful info
-  Future<String> getAuthUser() async {
-    return (await authAPI.currentUser())?.email;
-  }
-
-  Future<String> authenticate({
-    @required String username,
-    @required String password,
-  }) async {
-    await Future.delayed(Duration(seconds: 1));
-    return 'Token';
-  }
-
-  Future<void> deleteToken() async {
-    await Future.delayed(Duration(seconds: 1));
-    return;
-  }
-
-  Future<void> persistToken() async {
-    await Future.delayed(Duration(seconds: 1));
-    return;
-  }
-
-  Future<bool> hasToken() async {
-    await Future.delayed(Duration(seconds: 1));
-    return false;
+  Future<FirebaseUser> getAuthUser() async {
+    return authAPI.currentUser();
   }
 
   Future<void> signIn(
@@ -182,4 +153,16 @@ class UserRepository extends Repository {
     User user = User(DateTime.now(), authResult.user.uid, nickname);
     await addUser(user);
   }
+
+  static Map<UserFields, String> dbFieldNames = <UserFields, String>{
+    UserFields.createdTime: 'ct',
+    UserFields.userUID: 'uid',
+    UserFields.nickname: 'n',
+    UserFields.firstName: 'fn',
+    UserFields.lastName: 'ln',
+    UserFields.friendIDs: 'fs',
+    UserFields.careerID: 'c',
+    UserFields.settingsID: 's',
+    UserFields.isAdmin: 'ad',
+  };
 }

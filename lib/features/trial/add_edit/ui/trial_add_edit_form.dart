@@ -136,22 +136,25 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
         builder: (BuildContext context, TrialAddEditState state) {
           return Form(
             key: _trialAddEditBloc.formKey,
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: Scrollbar(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        children: _buildForm(),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: <Widget>[
+                  Expanded(
+                    child: Scrollbar(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Column(
+                          children: _buildForm(),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Container(
-                  child: widget.trial == null ? createButton() : updateButton(),
-                ),
-              ],
+                  Container(
+                    child: widget.trial == null ? createButton() : updateButton(),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -165,7 +168,7 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
       builder: (context, snapshot) {
         return AppIconButton(
           text: Text('Create'),
-          color: Colors.grey[300],
+          //color: Colors.grey[300],
           icon: Icon(Icons.add),
           onPressed: (snapshot.hasData && snapshot.data == true)
               ? () {
@@ -212,6 +215,7 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
               ))
           .toList(),
       onChanged: _trialAddEditBloc.onTrialTypeChanged,
+      initialValue: _trialAddEditBloc.trialTypeOptions.first,
     );
   }
 

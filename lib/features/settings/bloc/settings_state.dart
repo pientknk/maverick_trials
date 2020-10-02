@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:maverick_trials/core/models/settings.dart';
 
 abstract class SettingsState extends Equatable {
   SettingsState([List props = const[]]) : super(props);
@@ -17,6 +18,18 @@ class SettingsSavingState extends SettingsState {
   @override
   String toString() {
     return 'SettingsSavingState';
+  }
+}
+
+class SettingsUpdateState extends SettingsState {
+  final SettingsFields settingsField;
+  final bool value;
+
+  SettingsUpdateState(this.settingsField, this.value) : super([settingsField, value]);
+
+  @override
+  String toString() {
+    return 'SettingsUpdateState';
   }
 }
 

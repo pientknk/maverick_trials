@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/features/reset_password/bloc/reset_password.dart';
@@ -10,7 +10,7 @@ import 'package:rxdart/rxdart.dart';
 
 class ResetPasswordBloc extends Bloc<ResetPasswordEvent, ResetPasswordState>
     with RequiredFieldValidator, EmailValidator {
-  final UserRepository _userRepository;
+  final FirebaseUserRepository _userRepository;
 
   final BehaviorSubject<String> _emailController = BehaviorSubject<String>();
 
@@ -26,7 +26,7 @@ class ResetPasswordBloc extends Bloc<ResetPasswordEvent, ResetPasswordState>
         }
       }));
 
-  ResetPasswordBloc({@required UserRepository userRepository})
+  ResetPasswordBloc({@required FirebaseUserRepository userRepository})
       : assert(userRepository != null),
         _userRepository = userRepository;
 

@@ -20,21 +20,19 @@ class ImportantText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(text,
-      style: GoogleFonts.oswald(
+      /*style: GoogleFonts.oswald(
         height: 1.2,
         textStyle: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
       ),
-        /*
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
-        color: textColor,
-      ),
 
-         */
+       */
+      style: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 18,
+      ),
     );
   }
 }
@@ -68,8 +66,9 @@ class SecondaryText extends StatelessWidget {
 class AccentThemeText extends StatelessWidget {
   final String text;
   final bool isBold;
+  final TextAlign textAlign;
 
-  AccentThemeText({Key key, @required this.text, this.isBold = false})
+  AccentThemeText({Key key, @required this.text, this.isBold = false, this.textAlign = TextAlign.start})
     : assert(text != null),
       super(key: key);
 
@@ -77,12 +76,12 @@ class AccentThemeText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(text,
       style: GoogleFonts.oswald(
-
         textStyle: TextStyle(
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           fontSize: 15,
         ),
       ),
+      textAlign: textAlign,
     );
   }
 }
@@ -101,6 +100,25 @@ class ButtonThemeText extends StatelessWidget {
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           fontSize: 14,
         ),
+      ),
+    );
+  }
+}
+
+class ErrorText extends StatelessWidget {
+  final String text;
+  final bool isBold;
+
+  ErrorText({@required this.text, this.isBold = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text,
+      style: GoogleFonts.oswald(
+        textStyle: TextStyle(
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          fontSize: 15,
+        )
       ),
     );
   }

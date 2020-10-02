@@ -1,65 +1,53 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/settings.dart';
-import 'package:maverick_trials/ui/widgets/app_animated_switch.dart';
+import 'package:maverick_trials/features/authentication/bloc/auth.dart';
+import 'package:maverick_trials/features/settings/bloc/settings.dart';
+import 'package:maverick_trials/features/settings/ui/settings_form.dart';
 
 class SettingsView extends StatefulWidget {
+  final Settings settings;
+
+  SettingsView({Key key, @required this.settings}) :
+      assert(settings != null),
+      super(key: key);
+
   @override
   _SettingsViewState createState() => _SettingsViewState();
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  bool isDarkMode = false;
-  bool allowEditTrials = true;
-  bool allowEditGames = true;
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings'),
+      appBar: _buildAppBar(),
+      body: BlocProvider<SettingsBloc>(
+        create: (BuildContext context){
+          return SettingsBloc(
+            authBloc: BlocProvider.of<AuthenticationBloc>(context),
+            settings: widget.settings,
+          );
+        },
+        child: SettingsForm(),
       ),
-      body: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          children: <Widget>[
-            AppAnimatedToggle(
-              label: Settings
-                  .friendlyFieldNameBySettingsField[SettingsFields.isDarkMode],
-              isChecked: isDarkMode,
-              onTap: toggleIsDarkModeSwitch,
-            ),
-            AppAnimatedToggle(
-              label: Settings.friendlyFieldNameBySettingsField[
-                  SettingsFields.allowFriendsEditTrial],
-              isChecked: allowEditTrials,
-              onTap: toggleAllowEditTrials,
-            ),
-            AppAnimatedToggle(
-              label: Settings.friendlyFieldNameBySettingsField[
-                  SettingsFields.allowFriendsEditGame],
-              isChecked: allowEditGames,
-              onTap: toggleAllowEditGames,
-            ),
-          ],
-        ),
     );
   }
 
-  toggleIsDarkModeSwitch() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-    });
-  }
-
-  toggleAllowEditTrials() {
-    setState(() {
-      allowEditTrials = !allowEditTrials;
-    });
-  }
-
-  toggleAllowEditGames() {
-    setState(() {
-      allowEditGames = !allowEditGames;
-    });
+  Widget _buildAppBar(){
+    return AppBar(
+      title: Text('Settings'),
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back),
+        onPressed: (){
+          Navigator.pop(context);
+        },
+      ),
+    );
   }
 }

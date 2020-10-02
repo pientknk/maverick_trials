@@ -1,34 +1,37 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:maverick_trials/base/diamond_border.dart';
+import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_view.dart';
 
 class AppFab extends StatefulWidget {
-  final List<FloatingActionButton> fabs;
-
-  AppFab({Key key, @required this.fabs}) : super(key: key);
+  AppFab({Key key}) : super(key: key);
 
   @override
   _AppFabState createState() => _AppFabState();
 }
 
 class _AppFabState extends State<AppFab> with SingleTickerProviderStateMixin {
+  final int durationMS = 500;
   bool isOpened = false;
   AnimationController _animationController;
   Animation<Color> _buttonColor;
-  Animation<double> _animateIcon;
+  Animation<double> _animateRotation;
   Animation<double> _translateButton;
-  Curve _curve = Curves.easeOut;
+  Curve _curve = Curves.easeInOutSine;
   double _fabHeight = 55.0;
 
   @override
   void initState() {
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 500),
+      duration: Duration(milliseconds: durationMS),
     )..addListener(() {
         setState(() {});
       });
 
-    _animateIcon =
-        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    _animateRotation =
+        Tween<double>(begin: 0, end: 2 * pi).animate(_animationController);
 
     _translateButton = Tween<double>(
       begin: _fabHeight,
@@ -58,11 +61,49 @@ class _AppFabState extends State<AppFab> with SingleTickerProviderStateMixin {
     );
   }
 
+  List<FloatingActionButton> getFABs(){
+    return [
+      FloatingActionButton(
+        //shape: const DiamondBorder(),
+        heroTag: 'AddTrial',
+        backgroundColor: Theme.of(context).primaryColor,
+        onPressed: () {
+          Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TrialAddEditView(),
+                )
+              );
+        },
+        tooltip: 'Add Trial',
+        child: Icon(Icons.text_fields),
+      ),
+      FloatingActionButton(
+        //shape: const DiamondBorder(),
+        heroTag: 'AddGame',
+        backgroundColor: Theme.of(context).primaryColor,
+        onPressed: () {
+          /*Navigator.push(
+                context,
+                MaterialPageRoute(
+                  //builder: (context) => GameAddView(),
+                )
+              );
+
+               */
+        },
+        tooltip: 'Add Game',
+        child: Icon(Icons.games),
+      ),
+    ];
+  }
+
   List<Widget> _buildColumnWidgets() {
     List<Widget> widgets = List<Widget>();
-    int length = widget.fabs.length;
+    List<FloatingActionButton> fabs = getFABs();
+    int length = fabs.length;
 
-    widget.fabs.forEach((fab) {
+    fabs.forEach((fab) {
       widgets.add(Transform(
         transform: Matrix4.translationValues(
             0.0, _translateButton.value * length--, 0.0),
@@ -70,7 +111,7 @@ class _AppFabState extends State<AppFab> with SingleTickerProviderStateMixin {
       ));
     });
 
-    widgets.add(toggle());
+    widgets.add(togglingFab());
 
     return widgets;
   }
@@ -91,13 +132,38 @@ class _AppFabState extends State<AppFab> with SingleTickerProviderStateMixin {
     isOpened = !isOpened;
   }
 
-  Widget toggle() {
+  Widget togglingFab() {
     return FloatingActionButton(
+      //shape: const DiamondBorder(),
       backgroundColor: _buttonColor.value,
-      onPressed: animate,
-      child: AnimatedIcon(
-        icon: AnimatedIcons.menu_close,
-        progress: _animateIcon,
+      onPressed: (){
+        if(isOpened){
+          print('eventually this should nav to game start screen');
+          /*Navigator.push(
+                context,
+                MaterialPageRoute(
+                  //builder: (context) => GamePlayView(),
+                )
+              );
+
+               */
+        }
+        animate();
+      },
+      child: Transform.rotate(
+        angle: _animateRotation.value,
+        child: AnimatedCrossFade(
+          duration: Duration(milliseconds: durationMS),
+          crossFadeState: !isOpened
+            ? CrossFadeState.showFirst
+            : CrossFadeState.showSecond,
+          firstChild: Icon(Icons.menu,
+            key: UniqueKey()),
+          secondChild: Icon(Icons.play_arrow,
+            key: UniqueKey()),
+          firstCurve: _curve,
+          secondCurve: _curve,
+        ),
       ),
     );
   }

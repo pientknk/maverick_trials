@@ -1,15 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:maverick_trials/core/models/medal.dart';
 
-//RTDB
 class UserCareer {
   //A reference to a Firestore document representing this accolade
   DocumentReference reference;
   DateTime createdTime;
+  String nickname;
+  String firstName;
+  String lastName;
   int experience;
   List<Medal> accolades = List<Medal>();
 
-  UserCareer({this.createdTime, this.experience, this.accolades});
+  UserCareer({this.createdTime,
+    this.experience,
+    this.accolades});
 
   factory UserCareer.fromSnapshot(DocumentSnapshot snapshot) {
     UserCareer newUserCareer = UserCareer.fromJson(snapshot.data);
@@ -28,9 +32,7 @@ class UserCareer {
 
 UserCareer _userCareerFromJson(Map<String, dynamic> json) {
   return UserCareer(
-      createdTime: json['createdTime'] == null
-          ? null
-          : (json['createdTime'] as Timestamp).toDate(),
+      createdTime: (json['createdTime'] as Timestamp).toDate(),
       experience: json['experience'] as int,
       accolades: _convertAccolades(json['accolades'] as List));
 }

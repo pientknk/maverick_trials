@@ -7,7 +7,7 @@ class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  /// Firebase
+  /// Firebase Authentication Instance
   FirebaseAuth getFirebaseAuth() {
     return _firebaseAuth;
   }

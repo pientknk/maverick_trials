@@ -21,7 +21,7 @@ class FirestoreAPI {
 
   Future<QuerySnapshot> getDocumentByField(
     {SearchItem searchItem}) {
-    return _db
+      return _db
         .collection(searchItem.collectionName)
         .limit(1)
         .where(searchItem.fieldName, isEqualTo: searchItem.value)
@@ -29,6 +29,7 @@ class FirestoreAPI {
   }
 
   Future<QuerySnapshot> getDataCollection(SearchItem searchItem, {int limit = 10}) {
+    //return _db.collection(searchItem.collectionName);
     return _db.collection(searchItem.collectionName).limit(limit).getDocuments();
   }
 

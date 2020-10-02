@@ -6,6 +6,7 @@ import 'package:simple_animations/simple_animations.dart';
 import 'package:supercharged/supercharged.dart';
 
 class CustomSwitch extends StatelessWidget {
+  final Curve _curve = Curves.easeInOutSine;
   final Duration animDuration;
   final bool isChecked;
 
@@ -31,7 +32,7 @@ class CustomSwitch extends StatelessWidget {
           : CustomAnimationControl.PLAY_REVERSE,
       tween: multiTween,
       duration: multiTween.duration,
-      curve: Curves.easeInOutSine,
+      curve: _curve,
       builder: (BuildContext context, Widget child,
           MultiTweenValues<AniProps> tweenValue) {
         return _buildSwitch(context, child, tweenValue);
@@ -65,8 +66,8 @@ class CustomSwitch extends StatelessWidget {
                     color: tweenValue.get(AniProps.color),
                     size: 24.0,
                     key: UniqueKey()),
-                firstCurve: Curves.easeInOutSine,
-                secondCurve: Curves.easeInOutSine,
+                firstCurve: _curve,
+                secondCurve: _curve,
               ),
             ),
           ),

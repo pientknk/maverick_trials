@@ -30,11 +30,6 @@ class _TrialCardState extends State<TrialCard> {
         );
       },
       child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        color: Theme.of(context).primaryColor,
-        elevation: 0,
         child: Container(
           padding: const EdgeInsets.all(7),
           child: Column(
@@ -42,22 +37,20 @@ class _TrialCardState extends State<TrialCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Expanded(
-                flex: 3,
+                flex: 4,
                 child: _namePart(),
               ),
-              Expanded(
+              Flexible(
                 flex: 4,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Expanded(child: _ratingPart()),
-                          Expanded(child: _fairnessPart()),
-                        ],
-                      ),
+                      child: _ratingPart(),
+                    ),
+                    Expanded(
+                      child: _fairnessPart()
                     ),
                     Expanded(
                       child: Row(
@@ -95,10 +88,8 @@ class _TrialCardState extends State<TrialCard> {
   Widget _namePart(){
     return _baseContainer(
       child: Container(
-        padding: const EdgeInsets.all(0),
         child: ImportantText(
           text: widget.trial.name,
-          textColor: Colors.white,
         ),
       ),
     );
@@ -126,9 +117,7 @@ class _TrialCardState extends State<TrialCard> {
             children: <Widget>[
               Container(
                 child: GestureDetector(
-                  child: Icon(Icons.favorite_border,
-                    color: Colors.purple,
-                  ),
+                  child: Icon(Icons.favorite_border,),
                   onTap: (){
                     print('Favorite tapped');
                   },
@@ -136,7 +125,7 @@ class _TrialCardState extends State<TrialCard> {
               ),
               Container(
                 padding: const EdgeInsets.only(left: 4),
-                child: AccentThemeText(text: friendlyFormatNumber(4539901))
+                child: Text(friendlyFormatNumber(4539901))
               )
             ],
           ),
@@ -148,7 +137,7 @@ class _TrialCardState extends State<TrialCard> {
     return _baseContainer(
       child: Container(
         //padding: const EdgeInsets.only(left: 4),
-        child: SecondaryText(text: 'Rating: 3.5',)
+        child: Text('Rating: 3.5',)
       ),
     );
   }
@@ -157,7 +146,7 @@ class _TrialCardState extends State<TrialCard> {
     return _baseContainer(
       child: Container(
         //padding: const EdgeInsets.only(left: 4),
-        child: SecondaryText(text: 'Fairness: 4.6', textAlign: TextAlign.end,)
+        child: Text('Fairness: 4.6', textAlign: TextAlign.end,)
       ),
     );
   }

@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/models/game.dart';
 import 'package:maverick_trials/core/models/user.dart';
-import 'package:maverick_trials/core/repository/game_repository.dart';
+import 'package:maverick_trials/core/repository/game/firebase_game_repository.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth.dart';
 import 'package:maverick_trials/features/game/add_edit/bloc/game_add_edit.dart';
 import 'package:maverick_trials/locator.dart';
@@ -11,17 +11,19 @@ import 'package:rxdart/rxdart.dart';
 class GameAddEditBloc extends Bloc<GameAddEditEvent, GameAddEditState> {
   final AuthenticationBloc authBloc;
   final Game game;
-  final GameRepository _gameRepository = locator<GameRepository>();
+  final FirebaseGameRepository _gameRepository = locator<FirebaseGameRepository>();
   final List<String> trialBossOptions = [
-    'Option 1',
-    'Option 2',
+    'Permanent',
+    'Random',
+    'Manual',
+    'Eventl',
   ];
 
   final BehaviorSubject<String> _nameController = BehaviorSubject<String>();
   final BehaviorSubject<String> _descriptionController = BehaviorSubject<String>();
   final BehaviorSubject<int> _gameUserCountController = BehaviorSubject<int>();
   final BehaviorSubject<List<String>> _trialListController = BehaviorSubject<List<String>>();
-  final BehaviorSubject<String> _trialBossOptionController = BehaviorSubject<String>.seeded('Option 1');
+  final BehaviorSubject<String> _trialBossOptionController = BehaviorSubject<String>.seeded('Permanent Trial Boss');
 
   GameAddEditBloc({@required this.authBloc, this.game})
     : assert(authBloc != null);

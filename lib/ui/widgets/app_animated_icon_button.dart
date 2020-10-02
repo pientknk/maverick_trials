@@ -23,7 +23,7 @@ class AppAnimatedIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print('AppAnimatedIconButton should run animation? $runAnimation');
-    if(!runAnimation){
+    if(runAnimation == null || !runAnimation){
       return IconButton(
         key: UniqueKey(),
         iconSize: startingSize,

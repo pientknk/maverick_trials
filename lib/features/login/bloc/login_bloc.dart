@@ -1,13 +1,15 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
+import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth.dart';
 import 'package:maverick_trials/features/login/bloc/login_event.dart';
 import 'package:maverick_trials/features/login/bloc/login_state.dart';
+import 'package:maverick_trials/locator.dart';
 import 'package:rxdart/rxdart.dart';
 
 const int kPasswordMaxLength = 32;
@@ -15,7 +17,7 @@ const int kPasswordMinLength = 8;
 
 class LoginBloc extends Bloc<LoginEvent, LoginState>
     with EmailValidator, RequiredFieldValidator, RequiredLengthValidator {
-  final UserRepository userRepository;
+  final userRepository = locator<FirebaseUserRepository>();
   final AuthenticationBloc authenticationBloc;
 
   final BehaviorSubject<String> _emailController = BehaviorSubject<String>();
@@ -41,12 +43,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
       Rx.combineLatest2(email, password, (a, b) => true);
 
   LoginBloc({
-    @required this.userRepository,
     @required this.authenticationBloc,
-  })  : assert(userRepository != null),
-        assert(authenticationBloc != null);
+  }) : assert(authenticationBloc != null);
 
   void onLoginButtonPressed() {
+    print('LoginWithCredentialsPressedEvent pressed');
     this.add(LoginWithCredentialsPressedEvent(
       email: _emailController.stream.value,
       password: _passwordController.stream.value,
@@ -67,10 +68,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
     }
 
     if (event is LoginWithCredentialsPressedEvent) {
-      yield* _mapLoginWithCredentialsPressedToState(
-        email: event.email,
-        password: event.password,
-      );
+      yield* _mapLoginWithCredentialsPressedToState(event);
+    }
+
+    if (event is RegisterEvent){
+      yield* _mapRegisterEventToState(event);
     }
 
     if (event is AnonymousAccountPressedEvent) {
@@ -80,6 +82,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
     if (event is OfflineModePressedEvent) {
       yield* _mapOfflineModePressedEventToState();
     }
+  }
+
+  Stream<LoginState> _mapRegisterEventToState(RegisterEvent event) async* {
+    yield LoginRegisterState(email: event.email, password: event.password);
+    yield LoginInitialState();
   }
 
   Stream<LoginState> _mapLoginInitialEventToState() async* {
@@ -98,9 +105,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
     }).catchError((e) {
       print('anonymous account login error: $e');
       if (e is PlatformException) {
-        loginState = LoginFailureState(errorCode: e.code);
+        loginState = LoginFailureState(error: e.code);
       } else {
-        loginState = LoginFailureState(errorCode: e.toString());
+        loginState = LoginFailureState(error: e.toString());
       }
     });
 
@@ -116,25 +123,22 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
     }).catchError((e) {
       print('login with google error: $e');
       if (e is PlatformException) {
-        loginState = LoginFailureState(errorCode: e.code);
+        loginState = LoginFailureState(error: e.code);
       } else {
-        loginState = LoginFailureState(errorCode: e.toString());
+        loginState = LoginFailureState(error: e.toString());
       }
     });
 
     yield loginState;
   }
 
-  Stream<LoginState> _mapLoginWithCredentialsPressedToState({
-    String email,
-    String password,
-  }) async* {
+  Stream<LoginState> _mapLoginWithCredentialsPressedToState(LoginWithCredentialsPressedEvent event) async* {
     yield LoginSubmittingState();
 
     LoginState loginState = LoginInitialState();
 
     await userRepository
-        .signInWithCredentials(email: email, password: password)
+        .signInWithCredentials(email: event.email, password: event.password)
         .then((value) async {
       bool isEmailVerified = await userRepository.isEmailVerified;
       if (isEmailVerified) {
@@ -144,12 +148,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
         //userRepository.signOut();
         loginState = LoginEmailVerificationRequiredState();
       }
-    }).catchError((error) {
-      if (error is PlatformException) {
-        loginState = LoginFailureState(errorCode: error.code);
-      } else {
-        loginState = LoginFailureState(errorCode: 'ERROR_LOGIN_CREDENTIALS');
-      }
+    }).catchError((error, st) {
+      print(st.toString());
+      loginState = LoginFailureState(error: FirestoreExceptionHandler.tryGetPlatformExceptionMessage(error));
     });
 
     yield loginState;
@@ -158,6 +159,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
   Stream<LoginState> _mapOfflineModePressedEventToState() async* {
     authenticationBloc
       .add(AuthenticationLoggedInEvent(name: 'Offline Login'));
+  }
+
+  void registerButtonPressed(){
+    this.add(RegisterEvent(
+      password: _passwordController.value,
+      email: _emailController.value)
+    );
   }
 
   @override

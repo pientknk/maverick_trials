@@ -33,6 +33,18 @@ class LoginWithCredentialsPressedEvent extends LoginEvent {
   }
 }
 
+class RegisterEvent extends LoginEvent {
+  final String email;
+  final String password;
+
+  RegisterEvent({@required this.email, @required this.password}) : super([email, password]);
+
+  @override
+  String toString() {
+    return 'RegisterEvent<$email, $password>';
+  }
+}
+
 class AnonymousAccountPressedEvent extends LoginEvent {
   @override
   String toString() {

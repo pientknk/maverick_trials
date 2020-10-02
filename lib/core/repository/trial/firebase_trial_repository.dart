@@ -6,7 +6,7 @@ import 'package:maverick_trials/core/models/trial.dart';
 import 'package:maverick_trials/core/repository/repository.dart';
 import 'package:maverick_trials/core/services/firestore_api.dart';
 
-class TrialRepository extends Repository {
+class FirebaseTrialRepository extends Repository {
   Future<void> addTrial(Trial trial) async {
     await dbAPI.addDocument(FirestoreAPI.trialsCollection, trial.toJson(), docID: trial.name);
   }
@@ -30,7 +30,9 @@ class TrialRepository extends Repository {
 
   Future<List<Trial>> getTrials() async {
     QuerySnapshot querySnapshot = await dbAPI.getDataCollection(
-        SearchItem(collectionName: FirestoreAPI.trialsCollection));
+      SearchItem(collectionName: FirestoreAPI.trialsCollection));
+
+    print('Firestore: ${querySnapshot.documents.length} reads for Trials');
     return querySnapshot.documents
         .map((documentSnapshot) => Trial.fromJson(documentSnapshot.data))
         .toList();
@@ -55,16 +57,17 @@ class TrialRepository extends Repository {
 
   static Map<TrialFields, String> dbFieldNames =
       <TrialFields, String>{
-    TrialFields.createdTime: 'CT',
-    TrialFields.creatorUserCareerID: 'Cr',
-    TrialFields.name: 'N',
-    TrialFields.description: 'D',
-    TrialFields.rules: 'Rls',
-    TrialFields.winCondition: 'WC',
-    TrialFields.tieBreaker: 'TBrk',
-    TrialFields.trialRunCount: 'TRCt',
-    TrialFields.trialType: 'TT',
-    TrialFields.requirements: 'Rqs',
-    TrialFields.gameCount: 'GCt',
+    TrialFields.createdTime: 'ct',
+    TrialFields.creatorUserCareerID: 'cr',
+    TrialFields.name: 'n',
+    TrialFields.description: 'd',
+    TrialFields.rules: 'rls',
+    TrialFields.winCondition: 'wc',
+    TrialFields.tieBreaker: 'tb',
+    TrialFields.trialRunCount: 'trc',
+    TrialFields.trialType: 'tt',
+    TrialFields.requirements: 'rq',
+    TrialFields.gameCount: 'gc',
+        TrialFields.uID: 'uid'
   };
 }

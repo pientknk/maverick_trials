@@ -20,13 +20,13 @@ class LoginSubmittingState extends LoginState {
 }
 
 class LoginFailureState extends LoginState {
-  final String errorCode;
+  final String error;
 
-  LoginFailureState({@required this.errorCode}) : super([errorCode]);
+  LoginFailureState({@required this.error}) : super([error]);
 
   @override
   String toString() {
-    return 'LoginFailureState<$errorCode>';
+    return 'LoginFailureState<$error>';
   }
 }
 
@@ -34,5 +34,17 @@ class LoginEmailVerificationRequiredState extends LoginState {
   @override
   String toString() {
     return 'LoginEmailVerificationRequiredState';
+  }
+}
+
+class LoginRegisterState extends LoginState {
+  final String email;
+  final String password;
+
+  LoginRegisterState({this.email, this.password}) : super([email, password]);
+
+  @override
+  String toString() {
+    return 'LoginRegisterState<$email, $password>';
   }
 }

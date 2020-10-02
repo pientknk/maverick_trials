@@ -2,17 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/base/simple_bloc_delegate.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth_bloc.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_event.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_state.dart';
-import 'package:maverick_trials/features/login/ui/login_view.dart';
+import 'package:maverick_trials/features/authentication/ui/authentication_view.dart';
 import 'package:maverick_trials/locator.dart';
 import 'package:maverick_trials/ui/router.dart';
-import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
-import 'package:maverick_trials/ui/views/splash_view.dart';
 import 'package:maverick_trials/ui/widgets/app_theme.dart';
-import 'package:maverick_trials/ui/widgets/main_scaffold.dart';
+
+import 'features/authentication/bloc/auth_event.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,67 +19,35 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  final UserRepository userRepository = UserRepository();
-  runApp(BlocProvider<AuthenticationBloc>(
-    create: (BuildContext context) {
-      return AuthenticationBloc(userRepository: userRepository)
-        ..add(AuthenticationStartedEvent());
-    },
-    child: App(userRepository: userRepository),
-  ));
+
+  runApp(App());
 }
 
 class App extends StatelessWidget {
-  final UserRepository userRepository;
-
-  //TODO: look into AnimatedSwitcher to switch between widgets with animation
-
-  App({Key key, @required this.userRepository}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    AppTheme appTheme = AppTheme(isDark: true)
-      ..accentColor = Colors.grey
-      ..backgroundColor = Colors.black;
+    AppTheme appTheme = AppTheme(isDark: true);
 
     return GestureDetector(
-        onTap: () {
-          FocusScopeNode currentFocus = FocusScope.of(context);
-          if (!currentFocus.hasPrimaryFocus) {
-            currentFocus.unfocus();
-          }
-          //remove keyboard if its up and this doesn't work?
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
+        //remove keyboard if its up and this doesn't work?
+      },
+      child: BlocProvider<AuthenticationBloc>(
+        create: (BuildContext context) {
+          return AuthenticationBloc()..add(AuthenticationStartedEvent());
         },
         child: MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'Mav Trials',
           theme: appTheme.themeData,
-          home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-            builder: (BuildContext context, AuthenticationState state) {
-              if (state is AuthenticationInitialState) {
-                return SplashView();
-              }
-
-              if (state is AuthenticationSuccessState) {
-                print('mainscaffold');
-                return MainScaffold();
-              }
-
-              if (state is AuthenticationFailureState) {
-                print(state);
-                print('loginview');
-                return LoginView(
-                  userRepository: userRepository,
-                );
-              }
-
-              if (state is AuthenticationInProgressState) {
-                return BasicProgressIndicator();
-              }
-
-              return SplashView();
-            },
-          ),
+          home: AuthenticationView(),
           onGenerateRoute: Router.generateRoute,
-        ));
+        ),
+      ),
+    );
   }
 }

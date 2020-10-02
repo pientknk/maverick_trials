@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-//RTDB + CS (for icons)
 class Medal {
   //A reference to a Firestore document representing this accolade
   DocumentReference reference;

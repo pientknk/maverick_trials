@@ -1,10 +1,11 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
 import 'package:maverick_trials/features/register/bloc/register.dart';
+import 'package:maverick_trials/locator.dart';
 import 'package:maverick_trials/utils/word_generator.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -13,7 +14,18 @@ const int kPasswordMinLength = 8;
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
     with RequiredLengthValidator, EmailValidator, RequiredFieldValidator {
-  final UserRepository _userRepository;
+
+  RegisterBloc({String email, String password}){
+    if(email != null){
+      onEmailChanged(email);
+    }
+
+    if(password != null){
+      onPasswordChanged(password);
+    }
+  }
+
+  final FirebaseUserRepository _userRepository = locator<FirebaseUserRepository>();
 
   final BehaviorSubject<String> _emailController = BehaviorSubject<String>();
   final BehaviorSubject<String> _passwordController = BehaviorSubject<String>();
@@ -40,10 +52,6 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
 
   Stream<bool> get randomGeneratedNickname => _nicknameRunAnimationController.stream;
 
-  RegisterBloc({@required UserRepository userRepository})
-      : assert(userRepository != null),
-        _userRepository = userRepository;
-
   @override
   RegisterState get initialState => RegisterState.initial();
 
@@ -52,8 +60,6 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
     if (event is RegisterSubmittedEvent) {
       yield RegisterState.loading();
       try {
-        //first check firebase to see if the nickname is taken by searching on users by id
-        // if no results then its a new nickname and we can sign them up
         bool success = await _userRepository.signUp(
           nickname: event.nickname,
           email: event.email,

@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth_bloc.dart';
 import 'package:maverick_trials/features/login/bloc/login_bloc.dart';
-
 import 'login_form.dart';
 
-class LoginView extends StatelessWidget {
-  final UserRepository userRepository;
+class LoginView extends StatefulWidget {
+  @override
+  _LoginViewState createState() => _LoginViewState();
+}
 
-  LoginView({Key key, @required this.userRepository})
-      : assert(userRepository != null),
-        super(key: key);
-
+class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,12 +18,9 @@ class LoginView extends StatelessWidget {
         create: (BuildContext context) {
           return LoginBloc(
             authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
-            userRepository: userRepository,
           );
         },
-        child: LoginForm(
-          userRepository: userRepository,
-        ),
+        child: LoginForm()
       ),
     );
   }

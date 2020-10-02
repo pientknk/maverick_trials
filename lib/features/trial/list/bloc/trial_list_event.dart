@@ -7,6 +7,20 @@ abstract class TrialListEvent extends Equatable {
   TrialListEvent([List props = const[]]) : super(props);
 }
 
+class TrialListLoad extends TrialListEvent {
+  @override
+  String toString() {
+    return 'TrialListLoad<$TrialListEvent>';
+  }
+}
+
+class TrialListRefreshEvent extends TrialListEvent {
+  @override
+  String toString() {
+    return 'TrialListRefreshEvent';
+  }
+}
+
 class SearchTextChangedEvent extends TrialListEvent {
   final String searchText;
 

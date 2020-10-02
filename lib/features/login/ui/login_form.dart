@@ -1,23 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:maverick_trials/core/repository/user_repository.dart';
+import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
 import 'package:maverick_trials/features/login/bloc/login.dart';
 import 'package:maverick_trials/features/register/ui/register_page.dart';
 import 'package:maverick_trials/features/reset_password/ui/reset_password_view.dart';
-import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 import 'package:maverick_trials/ui/widgets/app_buttons.dart';
+import 'package:maverick_trials/ui/widgets/app_snack_bar.dart';
 import 'package:maverick_trials/ui/widgets/app_text_fields.dart';
 import 'package:maverick_trials/ui/widgets/app_text_link.dart';
 import 'package:maverick_trials/ui/widgets/app_texts.dart';
+import 'package:maverick_trials/utils/helpers.dart';
 
 class LoginForm extends StatefulWidget {
-  final UserRepository _userRepository;
-
-  LoginForm({Key key, @required UserRepository userRepository})
-      : assert(userRepository != null),
-        _userRepository = userRepository,
-        super(key: key);
+  LoginForm({Key key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => LoginFormState();
@@ -31,10 +27,18 @@ class LoginFormState extends State<LoginForm> {
 
   @override
   void initState() {
+    print('init login form');
     emailNode = FocusNode();
     passwordNode = FocusNode();
     _loginBloc = BlocProvider.of<LoginBloc>(context);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    print('dispose login form');
+
+    super.dispose();
   }
 
   @override
@@ -46,27 +50,29 @@ class LoginFormState extends State<LoginForm> {
           print('Login initial state');
         }
 
+        if(state is LoginRegisterState){
+          Navigator.of(context)
+            .push(MaterialPageRoute(builder: (BuildContext context) {
+            return RegisterPage(email: state.email, password: state.password,);
+          }));
+        }
+
         if (state is LoginFailureState) {
+          print('login failure state');
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Icon(Icons.error),
-                    Expanded(
-                        child: Container(
-                            padding: const EdgeInsets.only(left: 12),
-                            child: Text(widget._userRepository
-                                .getErrorMsgForCode(state.errorCode)),
-                        ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 4),
-              ),
+              AppSnackBar(
+                appSnackBarType: AppSnackBarType.error,
+                text: state.error,
+                durationInMs: 3000,
+                action: SnackBarAction(
+                  label: 'Report',
+                  onPressed: (){
+
+                  },
+                )
+              ).build(),
             );
         }
 
@@ -74,16 +80,11 @@ class LoginFormState extends State<LoginForm> {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    BasicProgressIndicator(),
-                    Text('Logging in...'),
-                  ],
-                ),
-                duration: Duration(seconds: 2),
-              ),
+              AppSnackBar(
+                leading: CircularProgressIndicator(),
+                text: 'Signing in...',
+                durationInMs: 2000,
+              ).build(),
             );
         }
 
@@ -151,12 +152,7 @@ class LoginFormState extends State<LoginForm> {
       text: Text('Create New Account'.toUpperCase()),
       icon: Icon(Icons.person_add),
       onPressed: (){
-        Navigator.of(context)
-          .push(MaterialPageRoute(builder: (BuildContext context) {
-          //TODO: make this page take parameters for the currently entered email and password
-          //field so that you can pass them into the create account fields for them (very convenient)
-          return RegisterPage(userRepository: widget._userRepository);
-        }));
+        _loginBloc.registerButtonPressed();
       },
     );
   }
@@ -199,7 +195,10 @@ class LoginFormState extends State<LoginForm> {
       //color: Colors.blueGrey[300],
       onPressed:
         (snapshot.hasData && snapshot.data == true)
-          ? () => _loginBloc.onLoginButtonPressed()
+          ? () {
+          Helpers.dismissKeyboard(context);
+          _loginBloc.onLoginButtonPressed();
+        }
           : null,
     );
   }
@@ -226,7 +225,7 @@ class LoginFormState extends State<LoginForm> {
         onTap: () {
           Navigator.of(context)
             .push(MaterialPageRoute(builder: (BuildContext context) {
-            return ResetPasswordView(userRepository: widget._userRepository);
+            return ResetPasswordView(userRepository: _loginBloc.userRepository);
           }));
         },
       ),
@@ -240,6 +239,7 @@ class LoginFormState extends State<LoginForm> {
         'To ensure you are a real person with a real email address, you must verify your account.'),
       actions: <Widget>[
         FlatButton(
+          textColor: Colors.blue[300],
           child: Text("UGHH FINE"),
           onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
         )

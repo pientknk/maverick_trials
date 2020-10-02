@@ -5,58 +5,49 @@ import 'package:maverick_trials/features/game/list/bloc/game_list.dart';
 import 'package:maverick_trials/features/game/ui/game_card.dart';
 import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 
-class GameListView extends StatelessWidget {
-  GameListView({Key key,}) : super(key: key);
+class GameListView extends StatefulWidget {
+  @override
+  _GameListViewState createState() => _GameListViewState();
+}
 
+class _GameListViewState extends State<GameListView> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return BlocProvider(
       create: (BuildContext context){
         return GameListBloc();
       },
-      child: GameListViewBody(),
-    );
-  }
-}
+      child: BlocBuilder<GameListBloc, GameListState>(
+        builder: (BuildContext context, GameListState state){
+          if(state is LoadingState){
+            return _loadingBody(context);
+          }
 
-class GameListViewBody extends StatefulWidget {
-  @override
-  _GameListViewBodyState createState() => _GameListViewBodyState();
-}
+          if(state is DefaultState){
+            BlocProvider.of<GameListBloc>(context).add(SearchTextClearedEvent());
+          }
 
-class _GameListViewBodyState extends State<GameListViewBody> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<GameListBloc, GameListState>(
-      bloc: BlocProvider.of<GameListBloc>(context),
-      builder: (BuildContext context, GameListState state){
-        if(state is LoadingState){
-          return _loadingBody(context);
-        }
+          if(state is SearchEmptyState){
+            _buildGameList(context, state.games);
+          }
 
-        if(state is DefaultState){
-          BlocProvider.of<GameListBloc>(context).add(SearchTextClearedEvent());
-        }
+          if(state is SearchSuccessState){
+            _buildGameList(context, state.games);
+          }
 
-        if(state is SearchEmptyState){
-          _buildGameList(context, state.games);
-        }
+          if(state is SearchErrorState){
+            return Container(
+              padding: const EdgeInsets.all(32),
+              child: Center(
+                child: Text('An error occurred while Searching: ${state.error}'),
+              ),
+            );
+          }
 
-        if(state is SearchSuccessState){
-          _buildGameList(context, state.games);
-        }
-
-        if(state is SearchErrorState){
-          return Container(
-            padding: const EdgeInsets.all(32),
-            child: Center(
-              child: Text('An error occurred while Searching: ${state.error}'),
-            ),
-          );
-        }
-
-        return Container();
-      },
+          return Container();
+        },
+      )
     );
   }
 
@@ -64,7 +55,7 @@ class _GameListViewBodyState extends State<GameListViewBody> {
     return Column(
       children: <Widget>[
         Center(
-          child: BasicProgressIndicator(),
+          child: CircularProgressIndicator(),
         ),
       ],
     );
@@ -93,5 +84,7 @@ class _GameListViewBodyState extends State<GameListViewBody> {
       }
     );
   }
-}
 
+  @override
+  bool get wantKeepAlive => true;
+}
