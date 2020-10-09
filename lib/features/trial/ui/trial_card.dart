@@ -20,7 +20,6 @@ class _TrialCardState extends State<TrialCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: (){
-        print('card tapped');
         Navigator.push(context,
           MaterialPageRoute(
             builder: (BuildContext context) => TrialAddEditView(
@@ -88,9 +87,7 @@ class _TrialCardState extends State<TrialCard> {
   Widget _namePart(){
     return _baseContainer(
       child: Container(
-        child: ImportantText(
-          text: widget.trial.name,
-        ),
+        child: ImportantText(widget.trial.name),
       ),
     );
   }

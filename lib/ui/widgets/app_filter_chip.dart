@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/models/filter_item.dart';
+import 'package:maverick_trials/core/models/base/filter_item.dart';
 
 class AppFilterChip extends StatelessWidget {
   final FilterItem filterItem;

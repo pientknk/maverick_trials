@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:maverick_trials/core/models/app_tabs.dart';
+import 'package:maverick_trials/core/models/base/app_tabs.dart';
 
 abstract class HomeEvent extends Equatable {
   HomeEvent([List props = const[]]) : super(props);

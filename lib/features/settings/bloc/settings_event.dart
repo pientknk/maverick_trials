@@ -5,10 +5,24 @@ abstract class SettingsEvent extends Equatable {
   SettingsEvent([List props = const[]]) : super(props);
 }
 
+class SettingsEventInitialize extends SettingsEvent {
+  @override
+  String toString() {
+    return 'SettingsEventInitialize';
+  }
+}
+
 class ResetSettingsEvent extends SettingsEvent {
   @override
   String toString() {
     return 'ResetSettingsEvent';
+  }
+}
+
+class SettingsEventSave extends SettingsEvent {
+  @override
+  String toString() {
+    return 'SettingsEventSave';
   }
 }
 
@@ -24,14 +38,6 @@ class UpdateSettingsEvent extends SettingsEvent {
   @override
   String toString() {
     return 'UpdateSettingsEvent';
-  }
-}
-
-class SaveSettingsEvent extends SettingsEvent {
-  //this should save to cloud for backup of settings and to sync across devices
-  @override
-  String toString() {
-    return 'SaveSettingsEvent';
   }
 }
 

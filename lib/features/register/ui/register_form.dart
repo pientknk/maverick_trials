@@ -3,18 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:maverick_trials/features/register/bloc/register.dart';
 import 'package:maverick_trials/features/register/ui/verify_email_dialog.dart';
-import 'package:maverick_trials/ui/widgets/app_animated_icon_button.dart';
+import 'package:maverick_trials/ui/widgets/animated/app_animated_icon_button.dart';
 import 'package:maverick_trials/ui/widgets/app_buttons.dart';
-import 'package:maverick_trials/ui/widgets/app_snack_bar.dart';
+import 'package:maverick_trials/ui/widgets/scaffold/app_snack_bar.dart';
 import 'package:maverick_trials/ui/widgets/app_text_fields.dart';
 import 'package:maverick_trials/ui/widgets/app_texts.dart';
 
 class RegisterForm extends StatefulWidget {
-  final String email;
-  final String password;
-
-  RegisterForm({this.email, this.password});
-
   @override
   _RegisterFormState createState() => _RegisterFormState();
 }
@@ -48,7 +43,7 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<RegisterBloc, RegisterState>(
-      listener: (BuildContext context, RegisterState state) {
+      listener: (BuildContext context, RegisterState state) async {
         if (state.isSubmitting) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
@@ -93,21 +88,19 @@ class _RegisterFormState extends State<RegisterForm> {
         builder: (BuildContext context, RegisterState state) {
           print('register form rebuilt within blocbuilder');
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(8.0),
             child: Form(
               key: _formKey,
               child: Column(
                 children: <Widget>[
                   Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: <Widget>[
-                          _header(),
-                          _nicknameFormField(),
-                          _emailFormField(),
-                          _passwordFormField(),
-                        ],
-                      ),
+                    child: ListView(
+                      children: <Widget>[
+                        _header(),
+                        _nicknameFormField(),
+                        _emailFormField(),
+                        _passwordFormField(),
+                      ],
                     ),
                   ),
                   _registerButton(context),
@@ -126,7 +119,7 @@ class _RegisterFormState extends State<RegisterForm> {
         builder:
           (BuildContext context, AsyncSnapshot<bool> snapshot) {
           return AppButton(
-            text: ButtonThemeText(text: 'Register'.toUpperCase()),
+            text: 'Register',
             onPressed: (snapshot.hasData && snapshot.data == true)
               ? () => _registerBloc.onRegisterButtonPressed(context)
               : null,
@@ -139,10 +132,9 @@ class _RegisterFormState extends State<RegisterForm> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SecondaryText(
-          text:
+        child: ImportantText(
           'Create an account in order to save your hard work, add '
-            'friends, and play games with them.'
+            'friends, and play games with them!'
         ),
       ),
     );
@@ -168,7 +160,7 @@ class _RegisterFormState extends State<RegisterForm> {
       stream: _registerBloc.randomGeneratedNickname,
       builder:
         (BuildContext context, AsyncSnapshot<bool> snapshot) {
-        print('AnimatedIconButton rebuilt');
+        print('Debug: AnimatedIconButton rebuilt');
         return Align(
           alignment: Alignment.centerRight,
           child: AppAnimatedIconButton(
@@ -191,7 +183,6 @@ class _RegisterFormState extends State<RegisterForm> {
   }
 
   Widget _emailFormField(){
-    print('email value ${widget.email}');
     return BasicStreamTextFormField(
       stream: _registerBloc.email,
       labelText: 'Email',
@@ -201,7 +192,7 @@ class _RegisterFormState extends State<RegisterForm> {
       currentFocusNode: emailNode,
       nextFocusNode: passwordNode,
       validator: _registerBloc.validateRequiredField,
-      initialValue: widget.email,
+      keyboardType: TextInputType.emailAddress,
     );
   }
 
@@ -215,7 +206,6 @@ class _RegisterFormState extends State<RegisterForm> {
       currentFocusNode: passwordNode,
       obscureText: true,
       validator: _registerBloc.validateRequiredField,
-      initialValue: widget.password,
     );
   }
 }

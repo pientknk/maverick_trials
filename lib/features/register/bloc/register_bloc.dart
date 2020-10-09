@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
@@ -14,17 +14,6 @@ const int kPasswordMinLength = 8;
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
     with RequiredLengthValidator, EmailValidator, RequiredFieldValidator {
-
-  RegisterBloc({String email, String password}){
-    if(email != null){
-      onEmailChanged(email);
-    }
-
-    if(password != null){
-      onPasswordChanged(password);
-    }
-  }
-
   final FirebaseUserRepository _userRepository = locator<FirebaseUserRepository>();
 
   final BehaviorSubject<String> _emailController = BehaviorSubject<String>();
@@ -97,10 +86,11 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
     ));
   }
 
-  void onGenerateNicknameButtonPressed() {
+  void onGenerateNicknameButtonPressed() async {
     _nicknameRunAnimationController.sink.add(true);
 
     String generatedWordPair = WordGenerator.generateWordPair();
+    await Future.delayed(Duration(milliseconds: 500));
     nicknameTextController.value = nicknameTextController.value.copyWith(text: generatedWordPair);
     onNicknameChanged(generatedWordPair);
   }

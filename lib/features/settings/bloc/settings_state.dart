@@ -12,6 +12,24 @@ class SettingsLoadingState extends SettingsState {
   }
 }
 
+class SettingsStateReady extends SettingsState {
+  @override
+  String toString() {
+    return 'SettingsStateReady';
+  }
+}
+
+class SettingsFailureState extends SettingsState {
+  final String errorMsg;
+
+  SettingsFailureState(this.errorMsg) : super([errorMsg]);
+
+  @override
+  String toString() {
+    return 'SettingsFailureState<$errorMsg>';
+  }
+}
+
 class SettingsSavingState extends SettingsState {
   //pass in settings object here
 
@@ -37,5 +55,12 @@ class SettingsResetState extends SettingsState {
   @override
   String toString() {
     return 'SettingsResetState';
+  }
+}
+
+class SettingsUpdateSuccessState extends SettingsState {
+  @override
+  String toString() {
+    return 'SettingsUpdateSuccessState';
   }
 }

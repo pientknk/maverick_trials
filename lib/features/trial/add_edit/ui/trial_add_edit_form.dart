@@ -4,8 +4,8 @@ import 'package:maverick_trials/core/models/trial.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_bloc.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_event.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_state.dart';
-import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 import 'package:maverick_trials/ui/widgets/app_buttons.dart';
+import 'package:maverick_trials/ui/widgets/scaffold/app_snack_bar.dart';
 import 'package:maverick_trials/ui/widgets/app_text_fields.dart';
 
 class TrialAddEditForm extends StatefulWidget {
@@ -61,16 +61,11 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    BasicProgressIndicator(),
-                    Text('Loading Form...'),
-                  ],
-                ),
-                duration: Duration(seconds: 2),
-              ),
+              AppSnackBar(
+                leading: CircularProgressIndicator(),
+                text: 'Loading Trial...',
+                durationInMs: 2000,
+              ).build()
             );
         }
 
@@ -78,16 +73,11 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    BasicProgressIndicator(),
-                    Text('Saving Trial...'),
-                  ],
-                ),
-                duration: Duration(seconds: 2),
-              ),
+              AppSnackBar(
+                leading: CircularProgressIndicator(),
+                text: 'Saving Trial',
+                durationInMs: 2000,
+              ).build()
             );
         }
 
@@ -95,16 +85,12 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Icon(Icons.check_circle),
-                    Text('Saved Successfully'),
-                  ],
-                ),
-                duration: Duration(seconds: 2),
-              ),
+              AppSnackBar(
+                leading: Icon(Icons.check),
+                text: 'Saved Successfully',
+                durationInMs: 2000,
+                appSnackBarType: AppSnackBarType.success,
+              ).build()
             );
           Navigator.pop(context);
         }
@@ -113,22 +99,12 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Icon(Icons.error),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.only(left: 12),
-                        child: Text(state.error),
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 3),
-              ),
+              AppSnackBar(
+                leading: Icon(Icons.error),
+                text: state.error,
+                durationInMs: 3000,
+                appSnackBarType: AppSnackBarType.error,
+              ).build()
             );
         }
       },
@@ -137,16 +113,14 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
           return Form(
             key: _trialAddEditBloc.formKey,
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(left: 8.0, top: 8.0, right: 8.0),
               child: Column(
                 children: <Widget>[
                   Expanded(
                     child: Scrollbar(
-                      child: SingleChildScrollView(
+                      child: ListView(
                         padding: const EdgeInsets.only(bottom: 16),
-                        child: Column(
                           children: _buildForm(),
-                        ),
                       ),
                     ),
                   ),
@@ -167,8 +141,7 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
       stream: _trialAddEditBloc.canSubmit,
       builder: (context, snapshot) {
         return AppIconButton(
-          text: Text('Create'),
-          //color: Colors.grey[300],
+          text: 'Create',
           icon: Icon(Icons.add),
           onPressed: (snapshot.hasData && snapshot.data == true)
               ? () {
@@ -182,8 +155,7 @@ class _TrialAddEditFormState extends State<TrialAddEditForm> {
 
   Widget updateButton() {
     return AppIconButton(
-      text: Text('Update'),
-      color: Theme.of(context).primaryColor,
+      text: 'Update',
       icon: Icon(Icons.save),
       onPressed: () {
         _trialAddEditBloc.add(EditTrialEvent(trial: widget.trial));

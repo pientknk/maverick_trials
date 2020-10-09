@@ -1,8 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
-import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
@@ -85,7 +84,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
   }
 
   Stream<LoginState> _mapRegisterEventToState(RegisterEvent event) async* {
-    yield LoginRegisterState(email: event.email, password: event.password);
+    yield LoginRegisterState();
     yield LoginInitialState();
   }
 
@@ -94,64 +93,57 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
   }
 
   Stream<LoginState> _mapAnonymousAccountEventToState() async* {
-    yield LoginSubmittingState();
+    yield LoginSubmittingState(message: 'Creating Temporary Account');
 
     LoginState loginState = LoginInitialState();
     //may need to find a way to check if this user already signed up anonymously? in case they log out and try to log back in
     //or provide a warning when logging out of an anonymous account saying they will lose all their data
-    await userRepository.signInAnonymously().then((value) {
-      authenticationBloc
-          .add(AuthenticationLoggedInEvent(name: "Anonymous Login"));
-    }).catchError((e) {
-      print('anonymous account login error: $e');
-      if (e is PlatformException) {
-        loginState = LoginFailureState(error: e.code);
-      } else {
-        loginState = LoginFailureState(error: e.toString());
-      }
-    });
+    try{
+      await userRepository.signInAnonymously();
+      authenticationBloc.add(AuthenticationLoggedInEvent(name: "Anonymous Login"));
+    }
+    catch(e){
+      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e));
+    }
 
     yield loginState;
   }
 
   Stream<LoginState> _mapLoginWithGooglePressedToState() async* {
-    yield LoginSubmittingState();
+    yield LoginSubmittingState(message: 'Getting information from Google');
 
     LoginState loginState = LoginInitialState();
-    await userRepository.signInWithGoogle().then((value) {
+    try{
+      await userRepository.signInWithGoogle();
       authenticationBloc.add(AuthenticationLoggedInEvent(name: 'Google Login'));
-    }).catchError((e) {
-      print('login with google error: $e');
-      if (e is PlatformException) {
-        loginState = LoginFailureState(error: e.code);
-      } else {
-        loginState = LoginFailureState(error: e.toString());
-      }
-    });
+    }
+    catch(e){
+      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e));
+    }
 
     yield loginState;
   }
 
   Stream<LoginState> _mapLoginWithCredentialsPressedToState(LoginWithCredentialsPressedEvent event) async* {
-    yield LoginSubmittingState();
+    yield LoginSubmittingState(message: 'Signing In');
 
     LoginState loginState = LoginInitialState();
 
-    await userRepository
-        .signInWithCredentials(email: event.email, password: event.password)
-        .then((value) async {
+    try{
+      await Future.delayed(Duration(milliseconds: 50));
+      await userRepository.signInWithCredentials(email: event.email, password: event.password);
+
       bool isEmailVerified = await userRepository.isEmailVerified;
       if (isEmailVerified) {
         authenticationBloc
-            .add(AuthenticationLoggedInEvent(name: 'Credentials Login'));
+          .add(AuthenticationLoggedInEvent(name: 'Credentials Login'));
       } else {
-        //userRepository.signOut();
         loginState = LoginEmailVerificationRequiredState();
       }
-    }).catchError((error, st) {
-      print(st.toString());
-      loginState = LoginFailureState(error: FirestoreExceptionHandler.tryGetPlatformExceptionMessage(error));
-    });
+    }
+    catch(e){
+      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e));
+    }
 
     yield loginState;
   }
@@ -161,11 +153,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
       .add(AuthenticationLoggedInEvent(name: 'Offline Login'));
   }
 
-  void registerButtonPressed(){
-    this.add(RegisterEvent(
-      password: _passwordController.value,
-      email: _emailController.value)
-    );
+  void registerButtonPressed() async {
+    this.add(RegisterEvent());
   }
 
   @override

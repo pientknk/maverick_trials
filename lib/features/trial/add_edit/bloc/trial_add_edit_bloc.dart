@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
 import 'package:maverick_trials/core/models/trial.dart';
 import 'package:maverick_trials/core/models/user.dart';
-import 'package:maverick_trials/core/repository/trial/firebase_trial_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_trial_repository.dart';
 import 'package:maverick_trials/core/validation/length_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
@@ -87,15 +87,13 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     (a, b, c,) => true);
 
   Future<Trial> createNewTrial() async {
-    Trial trial = Trial.newTrial();
-    _setTrial(trial);
-
     User user = await authBloc.userRepository.getCurrentUser();
-    trial.uID = user.userUID;
-    trial.creatorUserCareerID = user.nickname;
-    trial.createdTime = DateTime.now();
-    trial.trialRunCount = 0;
-    trial.gameCount = 0;
+
+    Trial trial = Trial.newTrial()
+      ..uID = user.userUID
+      ..creatorUserCareerID = user.nickname;
+
+    _setTrial(trial);
 
     return trial;
   }
@@ -127,13 +125,13 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
       try{
         Trial trial = await createNewTrial();
 
-        await trialRepository.addTrial(trial);
+        await trialRepository.add(trial);
 
         yield AddTrialStateSuccess(trial);
       }
       catch(error, stacktrace){
         print(stacktrace);
-        yield FailureState(FirestoreExceptionHandler.tryGetPlatformExceptionMessage(error));
+        yield FailureState(FirestoreExceptionHandler.tryGetMessage(error));
       }
     }
     else{
@@ -146,11 +144,17 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
       EditTrialEvent event) async* {
     yield StateSaving();
     Trial trial = event.trial;
+
     _setTrial(trial);
 
-    await trialRepository.updateTrial(trial);
+    try{
+      await trialRepository.update(trial);
 
-    yield EditTrialStateSuccess(trial);
+      yield EditTrialStateSuccess(trial);
+    }
+    catch(error){
+      yield FailureState(FirestoreExceptionHandler.tryGetMessage(error));
+    }
   }
 
   @override
@@ -174,13 +178,13 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
   }
 
   void _setTrial(Trial trial) {
-    trial.name = _nameController.stream.value;
-    trial.description = _descriptionController.stream.value;
-    trial.trialType = _trialTypeController.stream.value;
-    trial.winCondition = _winCondController.stream.value;
-    trial.rules = _rulesController.stream.value;
-    trial.tieBreaker = _tieBreakerController.stream.value;
-    trial.requirements = _requirementsController.stream.value;
+    trial.name = _nameController.stream.value ?? trial.name;
+    trial.description = _descriptionController.stream.value ?? trial.description;
+    trial.trialType = _trialTypeController.stream.value ?? trial.trialType;
+    trial.winCondition = _winCondController.stream.value ?? trial.winCondition;
+    trial.rules = _rulesController.stream.value ?? trial.rules;
+    trial.tieBreaker = _tieBreakerController.stream.value ?? trial.tieBreaker;
+    trial.requirements = _requirementsController.stream.value ?? trial.requirements;
   }
 
   bool validateForm(){

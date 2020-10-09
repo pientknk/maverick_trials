@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/models/game.dart';
-import 'package:maverick_trials/ui/shared/app_bottom_sheet.dart';
+import 'package:maverick_trials/ui/widgets/scaffold/app_bottom_sheet.dart';
 
 class GameDetailView extends StatefulWidget {
   GameDetailView({Key key, this.game})
@@ -30,8 +30,10 @@ class _GameDetailViewState extends State<GameDetailView> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: _buildAppBar(),
-      body: SingleChildScrollView(
-        child: _buildDetails(),
+      body: ListView(
+        children: [
+          _buildDetails(),
+        ],
       ),
     );
   }

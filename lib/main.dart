@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maverick_trials/base/simple_bloc_delegate.dart';
+import 'package:maverick_trials/simple_bloc_delegate.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth_bloc.dart';
 import 'package:maverick_trials/features/authentication/ui/authentication_view.dart';
 import 'package:maverick_trials/locator.dart';
 import 'package:maverick_trials/ui/router.dart';
-import 'package:maverick_trials/ui/widgets/app_theme.dart';
+import 'package:maverick_trials/ui/widgets/theme/app_theme.dart';
 
 import 'features/authentication/bloc/auth_event.dart';
 
@@ -37,8 +37,8 @@ class App extends StatelessWidget {
         //remove keyboard if its up and this doesn't work?
       },
       child: BlocProvider<AuthenticationBloc>(
-        create: (BuildContext context) {
-          return AuthenticationBloc()..add(AuthenticationStartedEvent());
+          create: (BuildContext context) {
+            return AuthenticationBloc()..add(AuthenticationStartedEvent());
         },
         child: MaterialApp(
           debugShowCheckedModeBanner: false,

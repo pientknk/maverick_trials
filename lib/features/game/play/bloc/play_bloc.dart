@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:maverick_trials/core/models/game.dart';
-import 'package:maverick_trials/core/repository/game/firebase_game_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_game_repository.dart';
 import 'package:maverick_trials/features/game/play/bloc/play_event.dart';
 import 'package:maverick_trials/features/game/play/bloc/play_state.dart';
 import 'package:maverick_trials/locator.dart';
@@ -48,7 +48,7 @@ class PlayBloc extends Bloc<PlayEvent, PlayState> {
     yield PlayStateLoading();
 
     try{
-      Game game = await _gameRepository.getGame(event.gameID);
+      Game game = await _gameRepository.get(event.gameID);
       yield PlayStateIsPlaying(game);
     }
     catch(error, stacktrace){

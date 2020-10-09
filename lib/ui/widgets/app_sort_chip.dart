@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/models/sort_item.dart';
+import 'package:maverick_trials/core/models/base/sort_item.dart';
 
 class AppSortChip extends StatelessWidget {
   final SortItem sortItem;

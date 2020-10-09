@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/models/filter_item.dart';
+import 'package:maverick_trials/core/models/base/filter_item.dart';
 import 'package:maverick_trials/core/models/trial.dart';
-import 'package:maverick_trials/core/models/trial_filter.dart';
+import 'package:maverick_trials/core/models/base/trial_filter.dart';
 import 'package:maverick_trials/ui/widgets/app_buttons.dart';
 import 'package:maverick_trials/ui/widgets/app_filter_chip.dart';
 
@@ -78,7 +78,7 @@ class _TrialFilterListState extends State<TrialFilterList> {
                                     ),
                                   ),
                                   AppIconButton(
-                                    text: Text('Add Filter'),
+                                    text: 'Add Filter',
                                     icon: Icon(Icons.add),
                                     onPressed: (){
                                       setState(() {
@@ -176,7 +176,7 @@ class _TrialFilterListState extends State<TrialFilterList> {
                         ),
                       ),
                       AppIconButton(
-                        text: Text('Add Filter'),
+                        text: 'Add Filter',
                         icon: Icon(Icons.add),
                         color: Theme
                           .of(context)

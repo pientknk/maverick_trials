@@ -13,6 +13,10 @@ class LoginInitialState extends LoginState {
 }
 
 class LoginSubmittingState extends LoginState {
+  String message;
+
+  LoginSubmittingState({@required this.message}) : super([message]);
+
   @override
   String toString() {
     return 'LoginSubmittingState';
@@ -20,13 +24,13 @@ class LoginSubmittingState extends LoginState {
 }
 
 class LoginFailureState extends LoginState {
-  final String error;
+  final String exception;
 
-  LoginFailureState({@required this.error}) : super([error]);
+  LoginFailureState({@required this.exception}) : super([exception]);
 
   @override
   String toString() {
-    return 'LoginFailureState<$error>';
+    return 'LoginFailureState<$exception>';
   }
 }
 

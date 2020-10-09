@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:maverick_trials/ui/widgets/theme/theme_colors.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
-import 'package:maverick_trials/features/register/bloc/register.dart';
-import 'package:maverick_trials/utils/constants.dart';
 
 _fieldFocusChange(
     BuildContext context, FocusNode currentFocusNode, FocusNode nextFocusNode) {
@@ -22,37 +21,6 @@ _dismissFocus(BuildContext context) {
   }
 }
 
-class StandardTextFormField extends FormField<String> {
-  StandardTextFormField({
-    FormFieldSetter<String> onSaved,
-    FormFieldValidator<String> validator,
-    String initialValue,
-    bool autoValidate = false,
-  }) : super(
-            onSaved: onSaved,
-            validator: validator,
-            initialValue: initialValue,
-            autovalidate: autoValidate,
-            builder: (FormFieldState<String> state) {
-              return Column(
-                children: <Widget>[
-                  Text(state.value),
-                  Container(
-                    height: 1,
-                    width: 400,
-                    color: Colors.grey,
-                  ),
-                  state.hasError
-                      ? Text(
-                          state.errorText,
-                          style: TextStyle(color: Colors.red),
-                        )
-                      : Container(),
-                ],
-              );
-            });
-}
-
 class BasicStreamTextFormField extends StatefulWidget {
   final String labelText;
   final String hintText;
@@ -67,6 +35,7 @@ class BasicStreamTextFormField extends StatefulWidget {
   final Widget suffixIcon;
   final TextEditingController controller;
   final FormFieldValidator<String> validator;
+  final TextInputType keyboardType;
 
   BasicStreamTextFormField({
     Key key,
@@ -83,6 +52,7 @@ class BasicStreamTextFormField extends StatefulWidget {
     this.suffixIcon,
     this.controller,
     this.validator,
+    this.keyboardType = TextInputType.text,
   })  : assert(controller == null || initialValue == null),
       assert(validator == null || !requiredField),
         super(key: key);
@@ -115,8 +85,8 @@ class _BasicStreamTextFormFieldState extends State<BasicStreamTextFormField>
         stream: widget.stream,
         builder: (context, snapshot) {
           return TextFormField(
-            //cursorColor: Colors.green,
-            maxLines: null,
+            cursorColor: ThemeColors.greenSheen,
+            maxLines: widget.obscureText ? 1 : null,
             controller: widget.controller,
             obscureText: widget.obscureText,
             focusNode: widget.currentFocusNode,
@@ -144,6 +114,7 @@ class _BasicStreamTextFormFieldState extends State<BasicStreamTextFormField>
               helperText: widget.requiredField ? '*Required' : null,
             ),
             textInputAction: widget.textInputAction,
+            keyboardType: widget.keyboardType,
             onChanged: widget.onChanged,
             initialValue: widget.initialValue,
             validator: widget.requiredField ? validateRequiredField : null,

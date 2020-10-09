@@ -57,9 +57,9 @@ class _PlayViewState extends State<PlayView> with AutomaticKeepAliveClientMixin 
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Flexible(
-                              child: ImportantText(
-                                text: "Looks like you don't have a game running. Get started by finding a game and playing!",
-                              ),
+                              child: ImportantText("Looks like you don't have a "
+                                "game running. Get started by finding a game "
+                                "and playing!"),
                             ),
                           ],
                         ),
@@ -78,7 +78,7 @@ class _PlayViewState extends State<PlayView> with AutomaticKeepAliveClientMixin 
                               onPressed: () {
                                 //navigate to Home tab with filter set to games
                               },
-                              text: ButtonThemeText(text: "Find Games".toUpperCase())
+                              text: 'Find Games',
                             ),
                           ),
                           Flexible(
@@ -86,7 +86,7 @@ class _PlayViewState extends State<PlayView> with AutomaticKeepAliveClientMixin 
                               onPressed: () {
                                 //navigate to Home tab with filter set to games
                               },
-                              text: ButtonThemeText(text: "My Games".toUpperCase())
+                              text: 'My Games'
                             ),
                           ),
                         ],

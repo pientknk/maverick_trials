@@ -20,13 +20,10 @@ class _AuthenticationViewState extends State<AuthenticationView> {
           }
 
           if (state is AuthenticationSuccessState) {
-            print('Home View');
             return HomeView();
           }
 
           if (state is AuthenticationFailureState) {
-            print(state);
-            print('loginview');
             return LoginView();
           }
 

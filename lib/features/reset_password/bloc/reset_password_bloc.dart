@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/features/reset_password/bloc/reset_password.dart';

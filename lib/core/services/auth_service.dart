@@ -17,8 +17,13 @@ class AuthService {
   }
 
   Future<String> currentUserUid() async {
-    FirebaseUser user = await _firebaseAuth.currentUser();
-    return user.uid;
+    try{
+      FirebaseUser user = await _firebaseAuth.currentUser();
+      return user.uid;
+    }
+    catch(error){
+      return null;
+    }
   }
 
   //possibly return the exception or null if no exception

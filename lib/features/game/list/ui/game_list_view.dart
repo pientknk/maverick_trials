@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/game.dart';
 import 'package:maverick_trials/features/game/list/bloc/game_list.dart';
 import 'package:maverick_trials/features/game/ui/game_card.dart';
-import 'package:maverick_trials/ui/shared/app_loading_indicator.dart';
 
 class GameListView extends StatefulWidget {
   @override

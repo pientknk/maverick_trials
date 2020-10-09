@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:maverick_trials/core/models/sort_item.dart';
+import 'package:maverick_trials/core/models/base/sort_item.dart';
 import 'package:maverick_trials/ui/widgets/app_texts.dart';
 
 class TrialBottomSheet extends StatefulWidget {

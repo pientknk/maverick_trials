@@ -30,7 +30,7 @@ class FirestoreExceptionHandler {
     }
   }
 
-  static String tryGetPlatformExceptionMessage(dynamic error){
+  static String tryGetMessage(dynamic error){
     print('FirestoreExceptionHandler: ${error.toString()}');
     if(error is PlatformException){
 
@@ -42,8 +42,7 @@ class FirestoreExceptionHandler {
       }
     }
     else{
-      print(error.toString());
-      return 'An Unknown error occurred.';
+      return error.toString();
     }
   }
 }

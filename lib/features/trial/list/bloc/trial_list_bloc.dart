@@ -1,10 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
-import 'package:maverick_trials/core/models/filter_item.dart';
-import 'package:maverick_trials/core/models/sort_item.dart';
+import 'package:maverick_trials/core/models/base/filter_item.dart';
+import 'package:maverick_trials/core/models/base/sort_item.dart';
 import 'package:maverick_trials/core/models/trial.dart';
-import 'package:maverick_trials/core/repository/trial/firebase_trial_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_trial_repository.dart';
 import 'package:maverick_trials/features/trial/list/bloc/trial_list.dart';
 import 'package:maverick_trials/locator.dart';
 
@@ -49,12 +49,15 @@ class TrialListBloc extends Bloc<TrialListEvent, TrialListState>{
   }
 
   Stream<TrialListState> _mapTrialListRefreshEventToState(TrialListRefreshEvent event) async* {
+    yield LoadingState();
+    await Future.delayed(Duration(milliseconds: 250));
+
     try{
-        List<Trial> results = await trialRepository.getTrials();
+        List<Trial> results = await trialRepository.getList();
         yield SearchEmptyState(results);
     }
     catch(error){
-      String errorMsg = FirestoreExceptionHandler.tryGetPlatformExceptionMessage(error);
+      String errorMsg = FirestoreExceptionHandler.tryGetMessage(error);
       yield SearchErrorState(errorMsg);
     }
   }
@@ -64,12 +67,12 @@ class TrialListBloc extends Bloc<TrialListEvent, TrialListState>{
 
     try{
       if(event.searchText.isEmpty){
-        List<Trial> results = await trialRepository.getTrials();
+        List<Trial> results = await trialRepository.getList();
         yield SearchEmptyState(results);
       }
       else{
         //TODO: this will need to filter the results based off the search
-        List<Trial> results = await trialRepository.getTrials();
+        List<Trial> results = await trialRepository.getList();
         yield SearchSuccessState(results);
       }
     }
@@ -82,7 +85,7 @@ class TrialListBloc extends Bloc<TrialListEvent, TrialListState>{
     yield LoadingState();
 
     try{
-      final List<Trial> results = await trialRepository.getTrials();
+      final List<Trial> results = await trialRepository.getList();
       yield SearchEmptyState(results);
     }
     catch(error){

@@ -66,8 +66,7 @@ class _GameCardState extends State<GameCard> {
 
   Widget _namePart(){
     return _baseContainer(
-      child: ImportantText(
-        text: widget.game.name,
+      child: ImportantText(widget.game.name,
         textColor: Colors.white,
       ),
     );

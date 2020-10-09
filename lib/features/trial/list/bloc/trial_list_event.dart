@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:maverick_trials/core/models/filter_item.dart';
-import 'package:maverick_trials/core/models/sort_item.dart';
+import 'package:maverick_trials/core/models/base/filter_item.dart';
+import 'package:maverick_trials/core/models/base/sort_item.dart';
 import 'package:maverick_trials/core/models/trial.dart';
 
 abstract class TrialListEvent extends Equatable {

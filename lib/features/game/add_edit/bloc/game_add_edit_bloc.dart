@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/models/game.dart';
 import 'package:maverick_trials/core/models/user.dart';
-import 'package:maverick_trials/core/repository/game/firebase_game_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_game_repository.dart';
 import 'package:maverick_trials/features/authentication/bloc/auth.dart';
 import 'package:maverick_trials/features/game/add_edit/bloc/game_add_edit.dart';
 import 'package:maverick_trials/locator.dart';
@@ -57,7 +57,7 @@ class GameAddEditBloc extends Bloc<GameAddEditEvent, GameAddEditState> {
 
     try{
       Game game = await createNewGame();
-      _gameRepository.addGame(game);
+      _gameRepository.add(game);
     }
     catch(e){
       yield GameAddEditFailureState(error: e.toString());
@@ -73,7 +73,7 @@ class GameAddEditBloc extends Bloc<GameAddEditEvent, GameAddEditState> {
     _setGame(game);
 
     try{
-      await _gameRepository.updateGame(game);
+      await _gameRepository.update(game);
     }
     catch(e){
       yield GameAddEditFailureState(error: e.toString());
@@ -83,20 +83,17 @@ class GameAddEditBloc extends Bloc<GameAddEditEvent, GameAddEditState> {
   }
 
   Future<Game> createNewGame() async {
-    Game game = Game.newGame();
-    _setGame(game);
-
     User user = await authBloc.userRepository.getCurrentUser();
-    game.creatorUserCareerID = user.nickname;
-    game.createdTime = DateTime.now();
-    game.trialCount = 0;
-    game.gameRunCount = 0;
-    game.trialIDs = List<String>();
+
+    Game game = Game.newGame()
+      ..creatorUserCareerID = user.nickname;
+
+    _setGame(game);
 
     return game;
   }
 
   void _setGame(Game game){
-
+    //TODO: implement _setGame
   }
 }

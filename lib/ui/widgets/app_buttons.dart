@@ -1,18 +1,21 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/ui/widgets/app_decorations.dart';
+import 'package:maverick_trials/ui/widgets/app_texts.dart';
 
 class AppIconButton extends StatelessWidget {
   final VoidCallback onPressed;
-  final Widget text;
+  final String text;
   final Widget icon;
   final Color color;
+  final bool isBold;
 
   AppIconButton({
     Key key,
     @required this.onPressed,
     @required this.text,
     @required this.icon,
+    this.isBold,
     this.color,
   }) : super(key: key);
 
@@ -28,7 +31,7 @@ class AppIconButton extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(20))
           ),
           onPressed: onPressed,
-          label: text,
+          label: ButtonThemeText(text, isBold: isBold,),
           icon: icon,
           color: color,
         ),
@@ -39,13 +42,15 @@ class AppIconButton extends StatelessWidget {
 
 class AppButton extends StatelessWidget {
   final VoidCallback onPressed;
-  final Widget text;
+  final String text;
+  final bool isBold;
   final Color color;
 
   AppButton(
       {Key key,
       @required this.onPressed,
       @required this.text,
+        this.isBold,
       this.color})
       : super(key: key);
 
@@ -57,7 +62,7 @@ class AppButton extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: RaisedButton(
-          child: text,
+          child: ButtonThemeText(text, isBold: isBold,),
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(20))
           ),

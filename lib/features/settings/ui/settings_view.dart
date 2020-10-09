@@ -1,17 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maverick_trials/core/models/settings.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth.dart';
-import 'package:maverick_trials/features/settings/bloc/settings.dart';
+import 'package:maverick_trials/features/settings/bloc/settings_bloc.dart';
 import 'package:maverick_trials/features/settings/ui/settings_form.dart';
 
 class SettingsView extends StatefulWidget {
-  final Settings settings;
+  final SettingsBloc settingsBloc;
 
-  SettingsView({Key key, @required this.settings}) :
-      assert(settings != null),
-      super(key: key);
+  SettingsView({Key key, @required this.settingsBloc}) : super(key: key);
 
   @override
   _SettingsViewState createState() => _SettingsViewState();
@@ -26,28 +21,16 @@ class _SettingsViewState extends State<SettingsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: BlocProvider<SettingsBloc>(
-        create: (BuildContext context){
-          return SettingsBloc(
-            authBloc: BlocProvider.of<AuthenticationBloc>(context),
-            settings: widget.settings,
-          );
-        },
-        child: SettingsForm(),
+      appBar: AppBar(
+        title: Text('Settings'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios),
+          onPressed: (){
+            Navigator.pop(context);
+          },
+        ),
       ),
-    );
-  }
-
-  Widget _buildAppBar(){
-    return AppBar(
-      title: Text('Settings'),
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back),
-        onPressed: (){
-          Navigator.pop(context);
-        },
-      ),
+      body: SettingsForm(settingsBloc: widget.settingsBloc,),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:maverick_trials/core/repository/settings/firebase_settings_repository.dart';
-import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_settings_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
@@ -80,6 +80,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState>
 
   Stream<AuthenticationState> _mapAuthenticationLoggedInToState() async* {
     final authUser = await userRepository.getAuthUser();
+    print('authUser: ${authUser.toString()}');
     if(authUser != null){
       yield AuthenticationSuccessState(name: authUser.email);
     }

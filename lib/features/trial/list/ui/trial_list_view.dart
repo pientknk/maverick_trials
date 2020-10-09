@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/trial.dart';
+import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_view.dart';
 import 'package:maverick_trials/features/trial/list/bloc/trial_list.dart';
 import 'package:maverick_trials/features/trial/ui/trial_card.dart';
 import 'package:maverick_trials/ui/widgets/app_buttons.dart';
@@ -35,7 +36,6 @@ class _TrialListViewState extends State<TrialListView> with AutomaticKeepAliveCl
           }
 
           if(state is SearchEmptyState){
-            print('Search Empty State with ${state.trials.length} records');
             return _buildBody(context, state.trials);
           }
 
@@ -125,7 +125,7 @@ class _TrialListViewState extends State<TrialListView> with AutomaticKeepAliveCl
                   isListMode = !isListMode;
                 });
               },
-              text: Text(isListMode ? 'List' : 'Grid'),
+              text: isListMode ? 'List' : 'Grid',
             ),
           ),
         ),
@@ -135,10 +135,23 @@ class _TrialListViewState extends State<TrialListView> with AutomaticKeepAliveCl
 
   Widget _buildGridView(BuildContext context, List<Trial> trials){
     if(trials.isEmpty){
-      return Container(
-        padding: const EdgeInsets.all(16),
-        child: Center(
-          child: Text("No Trials found!"),
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ImportantText('No Trials Found! Add one to get started or hit refresh.'),
+            ),
+            AppButton(
+              text: 'Refresh',
+              onPressed: (){
+                BlocProvider.of<TrialListBloc>(context).add(TrialListRefreshEvent());
+                Future.delayed(Duration(milliseconds: 250));
+              },
+            ),
+          ],
         ),
       );
     }
@@ -158,20 +171,32 @@ class _TrialListViewState extends State<TrialListView> with AutomaticKeepAliveCl
             childAspectRatio: 1.2,
           ),
           itemBuilder: (BuildContext context, int index){
-
               return TrialCard(trial: trials.elementAt(index));
-          },
-        ),
+          }
+        )
       ),
     );
   }
 
   Widget _buildListView(BuildContext context, List<Trial> trials){
     if(trials.isEmpty){
-      return Container(
-        padding: const EdgeInsets.all(16),
-        child: Center(
-          child: Text("No Trials found!"),
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ImportantText('No Trials Found! Add one to get started or hit refresh.'),
+            ),
+            AppButton(
+              text: 'Refresh',
+              onPressed: (){
+                BlocProvider.of<TrialListBloc>(context).add(TrialListRefreshEvent());
+                Future.delayed(Duration(milliseconds: 250));
+              },
+            ),
+          ],
         ),
       );
     }
@@ -188,22 +213,33 @@ class _TrialListViewState extends State<TrialListView> with AutomaticKeepAliveCl
           itemCount: trials.length,
           itemBuilder: (BuildContext context, int index){
               return _buildListTileForTrial(trials.elementAt(index));
-          },
+          }
         ),
       ),
     );
   }
 
   Widget _buildListTileForTrial(Trial trial){
-    return Card(
-      child: ListTile(
-        title: ImportantText(text: trial.name),
-        subtitle: Text('Rating: 3.5 | Fairness: 4.6 | Likes: 3 526'),
-        trailing: IconButton(
-          icon: Icon(Icons.favorite_border),
-          onPressed: (){
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TrialAddEditView(
+              trial: trial,
+            ),
+          ),
+        );
+      },
+      child: Card(
+        child: ListTile(
+          title: ImportantText(trial.name),
+          subtitle: Text('Rating: 3.5 | Fairness: 4.6 | Likes: 3 526'),
+          trailing: IconButton(
+            icon: Icon(Icons.favorite_border),
+            onPressed: (){
 
-          },
+            },
+          ),
         ),
       ),
     );

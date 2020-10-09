@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maverick_trials/core/repository/user/firebase_user_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/features/reset_password/bloc/reset_password.dart';
 import 'package:maverick_trials/features/reset_password/ui/reset_password_form.dart';
 

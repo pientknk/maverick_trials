@@ -1,5 +1,5 @@
 import 'package:bloc/bloc.dart';
-import 'package:maverick_trials/core/models/app_tabs.dart';
+import 'package:maverick_trials/core/models/base/app_tabs.dart';
 import 'package:maverick_trials/features/home/bloc/home_event.dart';
 
 class HomeBloc extends Bloc<HomeEvent, AppTabs> {

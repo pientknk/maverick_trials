@@ -9,10 +9,11 @@ import 'package:google_fonts/google_fonts.dart';
 class ImportantText extends StatelessWidget {
   final String text;
   final Color textColor;
+  final double fontSize;
 
-  ImportantText({Key key,
-    @required this.text,
+  ImportantText(this.text, {Key key,
     this.textColor,
+    this.fontSize= 18,
   })
       : assert(text != null),
         super(key: key);
@@ -31,7 +32,7 @@ class ImportantText extends StatelessWidget {
        */
       style: TextStyle(
         fontWeight: FontWeight.w600,
-        fontSize: 18,
+        fontSize: fontSize,
       ),
     );
   }
@@ -90,17 +91,21 @@ class ButtonThemeText extends StatelessWidget {
   final String text;
   final bool isBold;
 
-  ButtonThemeText({@required this.text, this.isBold = false});
+  ButtonThemeText(this.text, {this.isBold = false});
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
+    return Text(text.toUpperCase(),
+      style: TextStyle(fontSize: 15),
+      /*
       style: GoogleFonts.lato(
         textStyle: TextStyle(
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
           fontSize: 14,
         ),
       ),
+
+       */
     );
   }
 }
