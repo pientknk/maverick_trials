@@ -52,8 +52,7 @@ class LoginFormState extends State<LoginForm> {
         if (state is LoginRegisterState) {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (BuildContext context) {
-                return RegisterPage(
-                    email: state.email);
+                return RegisterPage();
               }));
         }
 
@@ -85,6 +84,8 @@ class LoginFormState extends State<LoginForm> {
         }
 
         if (state is LoginEmailVerificationRequiredState) {
+          Scaffold.of(context)
+            ..hideCurrentSnackBar();
           showDialog(
             barrierDismissible: false,
             context: context,
@@ -220,7 +221,7 @@ class LoginFormState extends State<LoginForm> {
         onTap: () {
           Navigator.of(context)
               .push(MaterialPageRoute(builder: (BuildContext context) {
-            return ResetPasswordView(userRepository: _loginBloc.userRepository);
+            return ResetPasswordView();
           }));
         },
       ),

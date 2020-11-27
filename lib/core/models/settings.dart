@@ -3,8 +3,8 @@ import 'package:maverick_trials/core/models/base/data_model.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_settings_repository.dart';
 
 class Settings with DataModel<Settings> {
+  String docID; //used as an initial document id for firestore
   bool isDarkMode;
-  String avatarLink; // if icons are stored in the app, this would be the link to images directory
   bool allowFriendsEditTrial;
   bool allowFriendsEditGame;
 
@@ -13,7 +13,6 @@ class Settings with DataModel<Settings> {
   }
 
   Settings._fromProperties({this.isDarkMode,
-    this.avatarLink,
     this.allowFriendsEditGame,
     this.allowFriendsEditTrial});
 
@@ -24,21 +23,24 @@ class Settings with DataModel<Settings> {
   static Map<SettingsFields, String> friendlyFieldNameBySettingsField =
     <SettingsFields, String>{
       SettingsFields.isDarkMode: 'Dark Mode',
-      SettingsFields.avatarLink: 'Avatar',
       SettingsFields.allowFriendsEditTrial: 'Allow Friends to edit your Trials',
       SettingsFields.allowFriendsEditGame: 'Allow Friends to edit your Games',
     };
 
   @override
   String toString() {
-    return 'Settings { IsDarkMode: $isDarkMode, AvatarLink: $avatarLink }';
+    return 'Settings { DocID: $docID, IsDarkMode: $isDarkMode }';
   }
 
   @override
   Settings fromSnapshot(DocumentSnapshot snapshot) {
     if(snapshot != null){
       Settings settings = Settings.fromJson(snapshot.data);
-      settings?.reference = snapshot.reference;
+      if(settings == null){
+        return Settings();
+      }
+
+      settings.reference = snapshot.reference;
       return settings;
     }
     else{
@@ -61,16 +63,15 @@ class Settings with DataModel<Settings> {
   }
 
   @override
-  String get id => reference.documentID;
+  String get id => reference?.documentID ?? docID;
 }
 
 Settings _settingsFromJson(Map<dynamic, dynamic> json){
   if(json != null){
     return Settings._fromProperties(
-      isDarkMode: json[FirebaseSettingsRepository.dbFieldNameBySettingsField[SettingsFields.isDarkMode]] as bool,
-      avatarLink: json[FirebaseSettingsRepository.dbFieldNameBySettingsField[SettingsFields.avatarLink]],
-      allowFriendsEditTrial: json[FirebaseSettingsRepository.dbFieldNameBySettingsField[SettingsFields.allowFriendsEditTrial]] as bool,
-      allowFriendsEditGame: json[FirebaseSettingsRepository.dbFieldNameBySettingsField[SettingsFields.allowFriendsEditGame]] as bool,
+      isDarkMode: json[FirebaseSettingsRepository.dbFieldNames[SettingsFields.isDarkMode]] as bool,
+      allowFriendsEditTrial: json[FirebaseSettingsRepository.dbFieldNames[SettingsFields.allowFriendsEditTrial]] as bool,
+      allowFriendsEditGame: json[FirebaseSettingsRepository.dbFieldNames[SettingsFields.allowFriendsEditGame]] as bool,
     );
   }
   else{
@@ -79,15 +80,13 @@ Settings _settingsFromJson(Map<dynamic, dynamic> json){
 }
 
 Map<String, dynamic> _settingsToJson(Settings instance) => <String, dynamic>{
-  FirebaseSettingsRepository.dbFieldNameBySettingsField[SettingsFields.isDarkMode] : instance.isDarkMode,
-  FirebaseSettingsRepository.dbFieldNameBySettingsField[SettingsFields.avatarLink] : instance.avatarLink,
-  FirebaseSettingsRepository.dbFieldNameBySettingsField[SettingsFields.allowFriendsEditTrial] : instance.allowFriendsEditTrial,
-  FirebaseSettingsRepository.dbFieldNameBySettingsField[SettingsFields.allowFriendsEditGame] : instance.allowFriendsEditGame,
+  FirebaseSettingsRepository.dbFieldNames[SettingsFields.isDarkMode] : instance.isDarkMode,
+  FirebaseSettingsRepository.dbFieldNames[SettingsFields.allowFriendsEditTrial] : instance.allowFriendsEditTrial,
+  FirebaseSettingsRepository.dbFieldNames[SettingsFields.allowFriendsEditGame] : instance.allowFriendsEditGame,
 };
 
 enum SettingsFields {
   isDarkMode,
-  avatarLink,
   allowFriendsEditTrial,
   allowFriendsEditGame,
 }

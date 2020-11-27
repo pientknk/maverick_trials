@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:maverick_trials/core/logging/logging.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_game_repository.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_settings_repository.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_trial_repository.dart';
@@ -16,4 +17,5 @@ void setupLocator() {
   locator.registerLazySingleton(() => FirebaseGameRepository());
   locator.registerLazySingleton(() => FirebaseUserRepository());
   locator.registerLazySingleton(() => FirebaseSettingsRepository());
+  locator.registerLazySingleton(() => Logging());
 }

@@ -12,10 +12,10 @@ class SettingsEventInitialize extends SettingsEvent {
   }
 }
 
-class ResetSettingsEvent extends SettingsEvent {
+class InitializeSettingsEvent extends SettingsEvent {
   @override
   String toString() {
-    return 'ResetSettingsEvent';
+    return 'InitializeSettingsEvent';
   }
 }
 

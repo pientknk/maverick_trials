@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_bloc.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_event.dart';
+import 'package:maverick_trials/features/auth/bloc/auth_bloc.dart';
+import 'package:maverick_trials/features/auth/bloc/auth_event.dart';
 
 ///
 /// OnPressed of this button will be handled by the AuthenticationBloc
@@ -18,15 +18,15 @@ class LogOutButton extends StatelessWidget {
         GestureDetector(
           child: Text('LOGOUT'),
           onTap: (){
-            BlocProvider.of<AuthenticationBloc>(context)
-              .add(AuthenticationLoggedOutEvent());
+            BlocProvider.of<AuthBloc>(context)
+              .add(AuthLoggedOutEvent());
           },
         ),
         IconButton(
           icon: Icon(Icons.exit_to_app),
           onPressed: () {
-            BlocProvider.of<AuthenticationBloc>(context)
-                .add(AuthenticationLoggedOutEvent());
+            BlocProvider.of<AuthBloc>(context)
+                .add(AuthLoggedOutEvent());
           },
         ),
       ],

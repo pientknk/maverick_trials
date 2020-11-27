@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/game.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth.dart';
+import 'package:maverick_trials/features/auth/bloc/auth.dart';
 import 'package:maverick_trials/features/game/add_edit/bloc/game_add_edit.dart';
 import 'package:maverick_trials/features/game/add_edit/ui/game_add_edit_form.dart';
 import 'package:maverick_trials/ui/widgets/app_texts.dart';
@@ -23,7 +23,7 @@ class _GameAddEditViewState extends State<GameAddEditView> {
       body: BlocProvider<GameAddEditBloc>(
         create: (BuildContext context){
           return GameAddEditBloc(
-            authBloc: BlocProvider.of<AuthenticationBloc>(context),
+            authBloc: BlocProvider.of<AuthBloc>(context),
             game: widget.game,
           );
         },

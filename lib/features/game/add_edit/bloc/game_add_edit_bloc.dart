@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/models/game.dart';
 import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_game_repository.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth.dart';
+import 'package:maverick_trials/features/auth/bloc/auth.dart';
 import 'package:maverick_trials/features/game/add_edit/bloc/game_add_edit.dart';
 import 'package:maverick_trials/locator.dart';
 import 'package:rxdart/rxdart.dart';
 
 class GameAddEditBloc extends Bloc<GameAddEditEvent, GameAddEditState> {
-  final AuthenticationBloc authBloc;
+  final AuthBloc authBloc;
   final Game game;
   final FirebaseGameRepository _gameRepository = locator<FirebaseGameRepository>();
   final List<String> trialBossOptions = [
@@ -86,7 +86,7 @@ class GameAddEditBloc extends Bloc<GameAddEditEvent, GameAddEditState> {
     User user = await authBloc.userRepository.getCurrentUser();
 
     Game game = Game.newGame()
-      ..creatorUserCareerID = user.nickname;
+      ..creatorUserCareerID = user?.firebaseUser?.displayName;
 
     _setGame(game);
 

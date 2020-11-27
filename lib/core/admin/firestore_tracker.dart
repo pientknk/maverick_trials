@@ -1,4 +1,6 @@
+import 'package:maverick_trials/core/logging/logging.dart';
 import 'package:maverick_trials/core/services/firestore_api.dart';
+import 'package:maverick_trials/locator.dart';
 
 ///
 /// The intent is to use this to create an object that keeps track of CRUD operations done
@@ -8,6 +10,10 @@ class FirestoreTracker {
   Map<String, CollectionData> collectionDataMap;
 
   FirestoreTracker(){
+    _setCollectionDataMap();
+  }
+
+  void _setCollectionDataMap(){
     collectionDataMap = <String, CollectionData>{
       FirestoreAPI.usersCollection : CollectionData(FirestoreAPI.usersCollection),
       FirestoreAPI.trialsCollection : CollectionData(FirestoreAPI.trialsCollection),
@@ -38,8 +44,13 @@ class FirestoreTracker {
       }
     }
     else{
-      print('key: $collectionName not found in FirestoreTracker');
+      String errorMsg = 'key: $collectionName not found in FirestoreTracker';
+      locator<Logging>().log(LogType.pretty, LogLevel.debug, errorMsg);
     }
+  }
+
+  void resetTracker(){
+    collectionDataMap.values.forEach((collectionData) => collectionData.reset());
   }
 
   @override
@@ -76,5 +87,12 @@ class CollectionData {
   String toString() {
     return 'Creates: $creates | Reads: $reads |'
       ' Updates: $updates | Deletes: $deletes';
+  }
+
+  void reset(){
+    creates = 0;
+    reads = 0;
+    updates = 0;
+    deletes = 0;
   }
 }

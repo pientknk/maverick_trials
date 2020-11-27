@@ -1,0 +1,1 @@
+enum TrialRunStatus { inactive, active, done }

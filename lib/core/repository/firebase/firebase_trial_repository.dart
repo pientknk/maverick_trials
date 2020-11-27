@@ -1,16 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:maverick_trials/core/logging/logging.dart';
 import 'package:maverick_trials/core/models/base/filter_item.dart';
 import 'package:maverick_trials/core/models/base/search_item.dart';
 import 'package:maverick_trials/core/models/base/sort_item.dart';
 import 'package:maverick_trials/core/models/trial.dart';
 import 'package:maverick_trials/core/repository/repository.dart';
 import 'package:maverick_trials/core/services/firestore_api.dart';
+import 'package:maverick_trials/locator.dart';
 
 class FirebaseTrialRepository extends Repository<Trial> {
   @override
   Future<Trial> add(Trial data) async {
-    DocumentSnapshot trialSnapshot = await dbAPI.addDocument(FirestoreAPI.trialsCollection, data.toJson(), docID: data.name);
-    return Trial().fromSnapshot(trialSnapshot);
+    if(data?.id != null){
+      DocumentSnapshot trialSnapshot = await dbAPI.addDocument(FirestoreAPI.trialsCollection,
+        data.toJson(), docID: data.id);
+      return Trial().fromSnapshot(trialSnapshot);
+    }
+    else{
+      throw Exception('Error Adding new Trial');
+    }
   }
 
   @override
@@ -75,19 +83,41 @@ class FirebaseTrialRepository extends Repository<Trial> {
     return List<Trial>();
   }
 
-  static Map<TrialFields, String> dbFieldNames =
-  <TrialFields, String>{
-    TrialFields.createdTime: 'ct',
-    TrialFields.creatorUserCareerID: 'cr',
-    TrialFields.name: 'n',
-    TrialFields.description: 'd',
-    TrialFields.rules: 'rls',
-    TrialFields.winCondition: 'wc',
-    TrialFields.tieBreaker: 'tb',
-    TrialFields.trialRunCount: 'trc',
-    TrialFields.trialType: 'tt',
-    TrialFields.requirements: 'rq',
-    TrialFields.gameCount: 'gc',
-    TrialFields.uID: 'uid'
-  };
+  static Map<TrialFields, String> dbFieldNames = Map.fromIterable(
+    TrialFields.values,
+    key: (trialField) => trialField,
+    value: (trialField) => _getDbFieldNames(trialField),
+  );
+
+  static String _getDbFieldNames(TrialFields trialField){
+    switch(trialField){
+      case TrialFields.createdTime:
+        return 'ct';
+      case TrialFields.creatorUserCareerID:
+        return 'cr';
+      case TrialFields.name:
+        return 'n';
+      case TrialFields.description:
+        return 'd';
+      case TrialFields.rules:
+        return 'rls';
+      case TrialFields.winCondition:
+        return 'wc';
+      case TrialFields.tieBreaker:
+        return 'tb';
+      case TrialFields.trialRunCount:
+        return 'trc';
+      case TrialFields.trialType:
+        return 'tt';
+      case TrialFields.requirements:
+        return 'rq';
+      case TrialFields.gameCount:
+        return 'gc';
+      case TrialFields.uID:
+        return 'uid';
+      default:
+        locator<Logging>().log(LogType.pretty, LogLevel.error, 'No TrialField mapping found in dbFieldNames for $trialField');
+        return null;
+    }
+  }
 }

@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "702290934781-evp630vjj3qqpkn2j6hgnihoinm1m2c9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mavericktree.maverick_trials",
+            "certificate_hash": "74b8eedbe071a528555168822d47179941c9cb1e"
+          }
+        },
+        {
           "client_id": "702290934781-7l5ltpceeqjug95rlaahkv1isikt1f2b.apps.googleusercontent.com",
           "client_type": 3
         }

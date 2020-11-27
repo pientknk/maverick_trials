@@ -1,14 +1,14 @@
+import 'package:catcher/catcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:maverick_trials/features/auth/bloc/auth.dart';
+import 'package:maverick_trials/features/auth/ui/auth_view.dart';
 import 'package:maverick_trials/simple_bloc_delegate.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_bloc.dart';
-import 'package:maverick_trials/features/authentication/ui/authentication_view.dart';
 import 'package:maverick_trials/locator.dart';
 import 'package:maverick_trials/ui/router.dart';
 import 'package:maverick_trials/ui/widgets/theme/app_theme.dart';
-
-import 'features/authentication/bloc/auth_event.dart';
+import 'package:maverick_trials/core/logging/catcher_config.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +20,7 @@ void main() {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(App());
+  CatcherConfig.standardCatcher(App());
 }
 
 class App extends StatelessWidget {
@@ -36,15 +36,16 @@ class App extends StatelessWidget {
         }
         //remove keyboard if its up and this doesn't work?
       },
-      child: BlocProvider<AuthenticationBloc>(
-          create: (BuildContext context) {
-            return AuthenticationBloc()..add(AuthenticationStartedEvent());
+      child: BlocProvider<AuthBloc>(
+        create: (BuildContext context) {
+          return AuthBloc()..add(AuthStartedEvent());
         },
         child: MaterialApp(
+          navigatorKey: Catcher.navigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'Mav Trials',
           theme: appTheme.themeData,
-          home: AuthenticationView(),
+          home: AuthView(),
           onGenerateRoute: Router.generateRoute,
         ),
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_bloc.dart';
+import 'package:maverick_trials/features/auth/bloc/auth_bloc.dart';
 import 'package:maverick_trials/features/login/bloc/login_bloc.dart';
 import 'login_form.dart';
 
@@ -17,7 +17,7 @@ class _LoginViewState extends State<LoginView> {
       body: BlocProvider<LoginBloc>(
         create: (BuildContext context) {
           return LoginBloc(
-            authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
+            authBloc: BlocProvider.of<AuthBloc>(context),
           );
         },
         child: LoginForm()

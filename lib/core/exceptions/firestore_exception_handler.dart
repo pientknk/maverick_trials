@@ -1,4 +1,6 @@
 import 'package:flutter/services.dart';
+import 'package:maverick_trials/core/logging/logging.dart';
+import 'package:maverick_trials/locator.dart';
 
 class FirestoreExceptionHandler {
   const FirestoreExceptionHandler();
@@ -25,23 +27,26 @@ class FirestoreExceptionHandler {
       case 'ERROR_NETWORK_REQUEST_FAILED':
         return 'No internet connection found';
       default:
-        return 'Error: $code';
+        return null;
         break;
     }
   }
 
-  static String tryGetMessage(dynamic error){
-    print('FirestoreExceptionHandler: ${error.toString()}');
+  static String tryGetMessage(dynamic error, StackTrace stackTrace){
     if(error is PlatformException){
+        String message = _getFriendlyErrorMsgForCode(error.code);
+        if(message == null){
+          message = error?.details ?? 'Unknown Error';
+          locator<Logging>().log(LogType.pretty, LogLevel.error, message, error, stackTrace);
+        }
+        else{
+          locator<Logging>().log(LogType.pretty, LogLevel.warning, message, error, stackTrace);
+        }
 
-      if(error.details != null){
-        return error.details;
-      }
-      else{
-        return _getFriendlyErrorMsgForCode(error.code);
-      }
+        return message;
     }
     else{
+      locator<Logging>().log(LogType.pretty, LogLevel.error, 'Unknown Error in FirestoreExceptionHandler', error, stackTrace);
       return error.toString();
     }
   }

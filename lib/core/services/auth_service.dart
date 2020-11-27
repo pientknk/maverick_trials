@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -21,17 +21,16 @@ class AuthService {
       FirebaseUser user = await _firebaseAuth.currentUser();
       return user.uid;
     }
-    catch(error){
+    catch(error, stacktrace){
+      FirestoreExceptionHandler.tryGetMessage(error, stacktrace);
       return null;
     }
   }
 
   //possibly return the exception or null if no exception
   Future<void> resetPassword({@required String email}) async {
-    _firebaseAuth.sendPasswordResetEmail(email: email).catchError((onError) {
-      if (onError is PlatformException) {
-        print('Reset Password Error: ${onError.message}');
-      }
+    _firebaseAuth.sendPasswordResetEmail(email: email).catchError((onError, st) {
+      FirestoreExceptionHandler.tryGetMessage(onError, st);
     });
   }
 
@@ -39,20 +38,20 @@ class AuthService {
     return _firebaseAuth.signOut();
   }
 
-  Future<void> signInWithEmailAndPassword(
+  Future<AuthResult> signInWithEmailAndPassword(
       {@required String email, @required String password}) async {
     return _firebaseAuth.signInWithEmailAndPassword(
         email: email, password: password);
   }
 
-  Future<void> signInWithCredentials(AuthCredential credential) async {
-    _firebaseAuth.signInWithCredential(credential).catchError((e) {
-      print(e);
+  Future<AuthResult> signInWithCredentials(AuthCredential credential) async {
+    return _firebaseAuth.signInWithCredential(credential).catchError((e, st) {
+      FirestoreExceptionHandler.tryGetMessage(e, st);
       //Future.error(e);
     });
   }
 
-  Future<void> signInAnonymously() async {
+  Future<AuthResult> signInAnonymously() async {
     return _firebaseAuth.signInAnonymously();
   }
 
@@ -61,8 +60,6 @@ class AuthService {
     try {
       AuthResult authResult = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
-      authResult.user.sendEmailVerification();
-      //_firebaseAuth.signOut();
       return authResult;
     } catch (e) {
       print(e);
@@ -80,9 +77,9 @@ class AuthService {
     return user == null ? false : user.isEmailVerified;
   }
 
-  Future<bool> isAnonymous() async {
-    FirebaseUser user = await _firebaseAuth.currentUser();
-    return user == null ? false : user.isAnonymous;
+  Future<bool> isAnonymous({FirebaseUser firebaseUser}) async {
+    firebaseUser = firebaseUser ?? await _firebaseAuth.currentUser();
+    return firebaseUser.isAnonymous;
   }
 
   Future<String> userProvider() async {

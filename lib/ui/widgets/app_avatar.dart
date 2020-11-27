@@ -59,7 +59,12 @@ class AppAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget avatar = link == null
         ? Icon(Icons.person)
-        : Image.asset(link, fit: BoxFit.contain);
+        : Image.asset(link, fit: BoxFit.contain,
+      errorBuilder: (context, exception, stacktrace){
+          print("Error loading asset for AppAvatar: ${exception.toString()} - "
+            "\r ${stacktrace.toString()}");
+          return Icon(Icons.person);
+      });
 
     return ClipPolygon(
         sides: 6,

@@ -56,8 +56,8 @@ class TrialListBloc extends Bloc<TrialListEvent, TrialListState>{
         List<Trial> results = await trialRepository.getList();
         yield SearchEmptyState(results);
     }
-    catch(error){
-      String errorMsg = FirestoreExceptionHandler.tryGetMessage(error);
+    catch(error, st){
+      String errorMsg = FirestoreExceptionHandler.tryGetMessage(error, st);
       yield SearchErrorState(errorMsg);
     }
   }

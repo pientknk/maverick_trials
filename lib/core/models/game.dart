@@ -55,7 +55,11 @@ class Game with DataModel<Game> {
   Game fromSnapshot(DocumentSnapshot snapshot) {
     if (snapshot != null) {
       Game game = Game.fromJson(snapshot.data);
-      game?.reference = snapshot.reference;
+      if(game == null){
+        return Game();
+      }
+
+      game.reference = snapshot.reference;
       return game;
     } else {
       return null;

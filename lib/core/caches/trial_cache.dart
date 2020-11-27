@@ -1,24 +1,44 @@
-import 'dart:collection';
 import 'dart:core';
 
+import 'package:maverick_trials/core/caches/cache.dart';
+import 'package:maverick_trials/core/caches/cache_manager.dart';
 import 'package:maverick_trials/core/models/trial.dart';
 
 //TODO: only build a cache for objects that will not need to be synced across different devices
 //for instance, trials created by the user are locked for editing, so when the user goes to my Trials list - get the data once,
 // then keep in memory since this data will not be seen by others
 //cache should have no logic tied to a database or external dependency
-class TrialCache {
-  static const int cacheLimit = 2;
+class TrialCache extends Cache<Trial> {
+  TrialCache() : super(cacheType: CacheType.trial, cacheLimit: 20);
 
-  //Look into a ListQueue instead if performance is an issue
-  //A FIFO structure might be useful to easily get rid of older accessed data
-  //while keeping more recently accessed data close
-  ListQueue<Trial> _trials = ListQueue();
-
-  ListQueue<Trial> getTrialsList() {
-    return _trials;
+  @override
+  Trial tryGet() {
+    // TODO: implement tryGet
+    return null;
   }
 
+  @override
+  void addData(Trial data) {
+    // TODO: implement addData
+    if(data != null){
+
+    }
+  }
+
+  @override
+  void addList(List<Trial> dataList) {
+    // TODO: implement addList
+    if(dataList != null && dataList.isNotEmpty){
+
+    }
+  }
+
+  @override
+  void clearCache() {
+    cachedList.clear();
+  }
+
+  /*
   void addTrial(Trial trial) {
     if (_trials.length != 0 && _trials.length == cacheLimit) {
       _trials.removeFirst();
@@ -39,4 +59,6 @@ class TrialCache {
       _trials.addAll(trials);
     }
   }
+
+   */
 }

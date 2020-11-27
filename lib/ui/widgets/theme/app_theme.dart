@@ -22,9 +22,9 @@ class AppTheme {
       surface: ThemeColors.sonicSilver,
       onBackground: bodyTextColor,
       onSurface: bodyTextColor,
-      onError: Colors.white,
-      onPrimary: Colors.white,
-      onSecondary: Colors.white,
+      onError: ThemeColors.accentColor,
+      onPrimary: ThemeColors.accentColor,
+      onSecondary: ThemeColors.accentColor,
       error: ThemeColors.pigmentRed,
     );
 
@@ -37,7 +37,7 @@ class AppTheme {
       filled: false,
       errorStyle: TextStyle(color: ThemeColors.tartOrange),
       enabledBorder: outlineInputBorder.copyWith(
-        borderSide: BorderSide(color: Colors.white, width: 1.0),
+        borderSide: BorderSide(color: ThemeColors.accentColor, width: 1.0),
       ),
       errorBorder: outlineInputBorder.copyWith(
         borderSide: BorderSide(color: ThemeColors.tartOrange, width: 1.0),
@@ -80,7 +80,7 @@ class AppTheme {
       opacity: 0.9,
     );
 
-    IconThemeData accentIconTheme = iconTheme.copyWith(color: Colors.white);
+    IconThemeData accentIconTheme = iconTheme.copyWith(color: ThemeColors.accentColor);
 
     AppBarTheme appBarTheme = AppBarTheme(
       elevation: 4.0,
@@ -89,10 +89,15 @@ class AppTheme {
       actionsIconTheme: accentIconTheme,
     );
 
+    BottomAppBarTheme bottomAppBarTheme = BottomAppBarTheme(
+      color: ThemeColors.eerieBlack,
+      elevation: 0.0,
+    );
+
     BottomNavigationBarThemeData bottomNavigationBarThemeData = BottomNavigationBarThemeData(
       backgroundColor: ThemeColors.jetGrey,
       selectedItemColor: ThemeColors.greenSheen,
-      unselectedItemColor: Colors.white,
+      unselectedItemColor: ThemeColors.accentColor,
       selectedIconTheme: iconTheme,
       unselectedIconTheme: accentIconTheme,
     );
@@ -124,8 +129,10 @@ class AppTheme {
       inputDecorationTheme: inputDecorationTheme,
       bottomNavigationBarTheme: bottomNavigationBarThemeData,
       appBarTheme: appBarTheme,
+      bottomAppBarTheme: bottomAppBarTheme,
       primaryColorLight: ThemeColors.jetGrey,
       primaryColorDark: ThemeColors.greenSheen,
+      scaffoldBackgroundColor: ThemeColors.eerieBlack,
     );
 
     return appThemeData;

@@ -1,13 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:maverick_trials/core/caches/cache.dart';
+import 'package:maverick_trials/core/caches/cache_manager.dart';
 import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
+import 'package:maverick_trials/core/logging/logging.dart';
 import 'package:maverick_trials/core/models/base/search_item.dart';
-import 'package:maverick_trials/utils/firestore_tracker.dart';
+import 'package:maverick_trials/locator.dart';
+import 'package:maverick_trials/core/admin/firestore_tracker.dart';
 
 class FirestoreAPI {
   final Firestore _db = Firestore.instance;
   final FirestoreTracker firestoreTracker = FirestoreTracker();
+  final CacheManager cacheManager = CacheManager();
+  final Logging _logging = locator<Logging>();
 
   Future<FirebaseApp> getConfiguredFirebaseApp() async {
     return FirebaseApp.configure(
@@ -40,8 +46,8 @@ class FirestoreAPI {
 
       return querySnapshot;
     }
-    catch(error){
-      print(FirestoreExceptionHandler.tryGetMessage(error));
+    catch(error, st){
+      FirestoreExceptionHandler.tryGetMessage(error, st);
       return null;
     }
   }
@@ -59,8 +65,8 @@ class FirestoreAPI {
 
       return querySnapshot;
     }
-    catch(error){
-      print(FirestoreExceptionHandler.tryGetMessage(error));
+    catch(error, st){
+      FirestoreExceptionHandler.tryGetMessage(error, st);
       return null;
     }
   }
@@ -80,8 +86,8 @@ class FirestoreAPI {
 
       return querySnapshots;
     }
-    catch(error){
-      print(FirestoreExceptionHandler.tryGetMessage(error));
+    catch(error, st){
+      FirestoreExceptionHandler.tryGetMessage(error, st);
       return null;
     }
   }
@@ -101,8 +107,8 @@ class FirestoreAPI {
 
       return querySnapshots;
     }
-    catch(error){
-      print(FirestoreExceptionHandler.tryGetMessage(error));
+    catch(error, st){
+      FirestoreExceptionHandler.tryGetMessage(error, st);
       return null;
     }
   }
@@ -120,15 +126,23 @@ class FirestoreAPI {
 
       return docSnapshot;
     }
-    catch(error) {
-      print(FirestoreExceptionHandler.tryGetMessage(error));
+    catch(error, st) {
+      FirestoreExceptionHandler.tryGetMessage(error, st);
       return null;
     }
   }
 
-  Future<bool> removeDocument(String path, String id) async {
+  Future<bool> removeDocument(String path, String id, {Cache cache, dynamic dataModel}) async {
     try{
       await _db.collection(path).document(id).delete();
+
+      if(cache != null && dataModel != null){
+          cache.removeData(dataModel);
+      }
+      else{
+        String errorMsg = 'removeDocument: Cache or data was null so cache couldnt be updated for $path';
+        _logging.log(LogType.pretty, LogLevel.info, errorMsg);
+      }
 
       firestoreTracker.updateTracker(
         collectionName: path,
@@ -138,17 +152,27 @@ class FirestoreAPI {
 
       return true;
     }
-    catch(error){
-      print(FirestoreExceptionHandler.tryGetMessage(error));
+    catch(error, st){
+      FirestoreExceptionHandler.tryGetMessage(error, st);
       return false;
     }
   }
 
-  Future<DocumentSnapshot> addDocument(String path, Map data, {String docID}) async {
+  Future<DocumentSnapshot> addDocument(String path, Map data, {String docID, Cache cache, dynamic dataModel}) async {
     try{
-      DocumentReference docRef = await _db.collection(path).add(data);
+      DocumentReference docRef = _db.collection(path).document(docID);
+      docRef.setData(data);
+
       DocumentSnapshot docSnapshot = await docRef.get();
       if(docSnapshot != null){
+        if(cache != null && dataModel != null){
+          cache.addData(dataModel);
+        }
+        else{
+          String errorMsg = 'addDocument: Cache or data was null so cache couldnt be updated for $path';
+          _logging.log(LogType.pretty, LogLevel.info, errorMsg);
+        }
+
         firestoreTracker.updateTracker(
           collectionName: path,
           trackerType: TrackerType.create,
@@ -158,8 +182,8 @@ class FirestoreAPI {
 
       return docSnapshot;
     }
-    catch(error){
-      print(FirestoreExceptionHandler.tryGetMessage(error));
+    catch(error, st){
+      FirestoreExceptionHandler.tryGetMessage(error, st);
       return null;
     }
   }
@@ -168,7 +192,9 @@ class FirestoreAPI {
     @required String path,
     @required String id,
     @required bool isIDUpdatable,
-    @required DocumentReference reference
+    @required DocumentReference reference,
+    Cache cache,
+    dynamic dataModel,
   }) async {
     bool didUpdate = false;
 
@@ -178,7 +204,8 @@ class FirestoreAPI {
       if(docSnapshot != null){
         bool deleted = await removeDocument(path, id);
         if(deleted == false){
-          print('Error deleting document within updateDocument() after adding new doc');
+          String message = 'Error deleting document within updateDocument() after adding new doc';
+          _logging.log(LogType.pretty, LogLevel.warning, message);
         }
 
         didUpdate = deleted;
@@ -186,15 +213,19 @@ class FirestoreAPI {
     }
     else{
       try{
-        await reference.updateData(data);
+        _logging.log(LogType.pretty, LogLevel.info, 'Setting data to firestore: \n ${data.toString()}');
+        await reference.setData(data, merge: true);
         didUpdate = true;
       }
-      catch(error){
-        print(FirestoreExceptionHandler.tryGetMessage(error));
+      catch(error, st){
+        FirestoreExceptionHandler.tryGetMessage(error, st);
       }
     }
 
     if(didUpdate){
+      if(cache != null && dataModel != null){
+        cache.addData(dataModel);
+      }
       firestoreTracker.updateTracker(
         collectionName: path,
         trackerType: TrackerType.update,

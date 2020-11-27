@@ -43,6 +43,7 @@ class AppIconButton extends StatelessWidget {
 class AppButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String text;
+  final double fontSize;
   final bool isBold;
   final Color color;
 
@@ -51,7 +52,8 @@ class AppButton extends StatelessWidget {
       @required this.onPressed,
       @required this.text,
         this.isBold,
-      this.color})
+      this.color,
+      this.fontSize})
       : super(key: key);
 
   @override
@@ -62,7 +64,7 @@ class AppButton extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: RaisedButton(
-          child: ButtonThemeText(text, isBold: isBold,),
+          child: ButtonThemeText(text, isBold: isBold, fontSize: fontSize,),
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(20))
           ),

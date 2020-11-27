@@ -70,7 +70,11 @@ class Trial extends DataModel<Trial> {
   Trial fromSnapshot(DocumentSnapshot snapshot) {
     if (snapshot != null) {
       Trial trial = Trial.fromJson(snapshot.data);
-      trial?.reference = snapshot.reference;
+      if(trial == null){
+        return Trial();
+      }
+
+      trial.reference = snapshot.reference;
       return trial;
     } else {
       return null;

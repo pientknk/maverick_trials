@@ -4,9 +4,7 @@ import 'package:maverick_trials/features/register/bloc/register.dart';
 import 'package:maverick_trials/features/register/ui/register_form.dart';
 
 class RegisterPage extends StatefulWidget {
-  final String email;
-
-  RegisterPage({this.email});
+  RegisterPage();
 
   @override
   _RegisterPageState createState() => _RegisterPageState();

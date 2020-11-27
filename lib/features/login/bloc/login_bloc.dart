@@ -1,11 +1,13 @@
 import 'package:bloc/bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
+import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth.dart';
+import 'package:maverick_trials/features/auth/bloc/auth.dart';
 import 'package:maverick_trials/features/login/bloc/login_event.dart';
 import 'package:maverick_trials/features/login/bloc/login_state.dart';
 import 'package:maverick_trials/locator.dart';
@@ -17,7 +19,7 @@ const int kPasswordMinLength = 8;
 class LoginBloc extends Bloc<LoginEvent, LoginState>
     with EmailValidator, RequiredFieldValidator, RequiredLengthValidator {
   final userRepository = locator<FirebaseUserRepository>();
-  final AuthenticationBloc authenticationBloc;
+  final AuthBloc authBloc;
 
   final BehaviorSubject<String> _emailController = BehaviorSubject<String>();
   final BehaviorSubject<String> _emailResetController =
@@ -42,8 +44,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
       Rx.combineLatest2(email, password, (a, b) => true);
 
   LoginBloc({
-    @required this.authenticationBloc,
-  }) : assert(authenticationBloc != null);
+    @required this.authBloc,
+  }) : assert(authBloc != null);
 
   void onLoginButtonPressed() {
     print('LoginWithCredentialsPressedEvent pressed');
@@ -99,11 +101,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
     //may need to find a way to check if this user already signed up anonymously? in case they log out and try to log back in
     //or provide a warning when logging out of an anonymous account saying they will lose all their data
     try{
-      await userRepository.signInAnonymously();
-      authenticationBloc.add(AuthenticationLoggedInEvent(name: "Anonymous Login"));
+      AuthResult authResult = await userRepository.signInAnonymously();
+      User user = await userRepository.getCurrentUser(firebaseUser: authResult.user);
+      authBloc.add(AuthLoggedInEvent(user: user));
     }
-    catch(e){
-      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e));
+    catch(e, st){
+      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e, st));
     }
 
     yield loginState;
@@ -114,11 +117,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
 
     LoginState loginState = LoginInitialState();
     try{
-      await userRepository.signInWithGoogle();
-      authenticationBloc.add(AuthenticationLoggedInEvent(name: 'Google Login'));
+      AuthResult authResult = await userRepository.signInWithGoogle();
+      User user = await userRepository.getCurrentUser(firebaseUser: authResult.user);
+
+      authBloc.add(AuthLoggedInEvent(user: user));
     }
-    catch(e){
-      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e));
+    catch(e, st){
+      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e, st));
     }
 
     yield loginState;
@@ -131,26 +136,27 @@ class LoginBloc extends Bloc<LoginEvent, LoginState>
 
     try{
       await Future.delayed(Duration(milliseconds: 50));
-      await userRepository.signInWithCredentials(email: event.email, password: event.password);
+      AuthResult authResult = await userRepository.signInWithEmailAndPassword(email: event.email, password: event.password);
 
-      bool isEmailVerified = await userRepository.isEmailVerified;
+      final user = await userRepository.getCurrentUser(firebaseUser: authResult.user);
+      bool isEmailVerified = user.firebaseUser.isEmailVerified;
       if (isEmailVerified) {
-        authenticationBloc
-          .add(AuthenticationLoggedInEvent(name: 'Credentials Login'));
+        authBloc.add(AuthLoggedInEvent(user: user));
       } else {
         loginState = LoginEmailVerificationRequiredState();
       }
     }
-    catch(e){
-      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e));
+    catch(e, st){
+      loginState = LoginFailureState(exception: FirestoreExceptionHandler.tryGetMessage(e, st));
     }
 
     yield loginState;
   }
 
   Stream<LoginState> _mapOfflineModePressedEventToState() async* {
-    authenticationBloc
-      .add(AuthenticationLoggedInEvent(name: 'Offline Login'));
+    //TODO: try to get user from cache?
+    authBloc
+      .add(AuthLoggedInEvent());
   }
 
   void registerButtonPressed() async {

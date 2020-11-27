@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/models/base/app_tabs.dart';
+import 'package:maverick_trials/ui/widgets/theme/theme_icons.dart';
 
 class AppBottomNavigationBar extends StatelessWidget {
   final AppTabs activeTab;
@@ -30,11 +31,11 @@ class AppBottomNavigationBar extends StatelessWidget {
   Widget _getIconForTab(AppTabs tab, {bool isActive = false}){
     switch(tab){
       case AppTabs.trials:
-        return Icon(Icons.text_fields);
+        return ThemeIcons.trialsIcon;
       case AppTabs.play:
         return Icon(Icons.play_circle_outline);
       case AppTabs.games:
-        return Icon(Icons.games);
+        return ThemeIcons.gamesIcon;
       default:
         return null;
     }

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_view.dart';
+import 'package:maverick_trials/ui/widgets/theme/theme_icons.dart';
 
 class AppFab extends StatefulWidget {
   AppFab({Key key}) : super(key: key);
@@ -75,7 +76,7 @@ class _AppFabState extends State<AppFab> with SingleTickerProviderStateMixin {
               );
         },
         tooltip: 'Add Trial',
-        child: Icon(Icons.text_fields),
+        child: ThemeIcons.trialsIcon,
       ),
       FloatingActionButton(
         //shape: const DiamondBorder(),
@@ -92,7 +93,7 @@ class _AppFabState extends State<AppFab> with SingleTickerProviderStateMixin {
                */
         },
         tooltip: 'Add Game',
-        child: Icon(Icons.games),
+        child: ThemeIcons.gamesIcon,
       ),
     ];
   }

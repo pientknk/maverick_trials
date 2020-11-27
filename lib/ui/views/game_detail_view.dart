@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:maverick_trials/core/models/game.dart';
 import 'package:maverick_trials/ui/widgets/scaffold/app_bottom_sheet.dart';
+import 'package:maverick_trials/ui/widgets/theme/theme_icons.dart';
 
 class GameDetailView extends StatefulWidget {
   GameDetailView({Key key, this.game})
@@ -110,7 +111,7 @@ class _GameDetailViewState extends State<GameDetailView> {
                         //TODO: navigate to Game Runs with this gameID?
                       },
                       child: ListTile(
-                        leading: Icon(Icons.text_fields),
+                        leading: ThemeIcons.gamesIcon,
                         title: Row(
                           children: <Widget>[
                             Expanded(child: Text('Game Runs')),
@@ -143,7 +144,7 @@ class _GameDetailViewState extends State<GameDetailView> {
                         //TODO: navigate to Trial Runs with this trialID?
                       },
                       child: ListTile(
-                        leading: Icon(Icons.text_fields),
+                        leading: ThemeIcons.gamesIcon,
                         title: Row(
                           children: <Widget>[
                             Expanded(child: Text('Trials for this game')),

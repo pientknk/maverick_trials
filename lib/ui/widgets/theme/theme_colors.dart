@@ -5,9 +5,7 @@ class ThemeColors{
 
   //make this a subcollection of settings?
   //Then to customize to any colors
-  static Color primarySwatch = Colors.teal;
-  static Color backgroundColor = Colors.pinkAccent;
-  static Color cardColor = Colors.teal;
+  static Color defaultDarkThemeColor = Color(0xFF262525);
   static Color accentColor = Colors.white;
   static Color eerieBlack = Color(0xff262525);
   static Color jetGrey = Color(0xff403F40);

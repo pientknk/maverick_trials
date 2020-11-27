@@ -1,16 +1,21 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/features/about/ui/about_view.dart';
-import 'package:maverick_trials/features/admin/firestore_tracker_view.dart';
+import 'package:maverick_trials/features/admin/admin_view.dart';
+import 'package:maverick_trials/features/auth/bloc/auth.dart';
 import 'package:maverick_trials/features/career/ui/career_view.dart';
+import 'package:maverick_trials/features/register/ui/register_page.dart';
 import 'package:maverick_trials/features/settings/bloc/settings.dart';
 import 'package:maverick_trials/features/settings/ui/settings_view.dart';
 import 'package:maverick_trials/features/user/ui/friends_view.dart';
 import 'package:maverick_trials/locator.dart';
 import 'package:maverick_trials/features/app_drawer/ui/logout_button.dart';
+import 'package:maverick_trials/ui/router.dart';
 import 'package:maverick_trials/ui/widgets/app_avatar.dart';
+import 'package:maverick_trials/ui/widgets/dialogs/coming_soon_alert_dialog.dart';
 
 class AppDrawer extends StatelessWidget {
   final userRepository = locator<FirebaseUserRepository>();
@@ -41,13 +46,14 @@ class AppDrawer extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0, top: 3.0, bottom: 3.0),
                     child: AppAvatar(
-                      link: settingsBloc.settings.avatarLink,
+                      link: settingsBloc.user.photoUrl,
                       size: 22,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(5.0),
                     child: FutureBuilder<String>(
+                      initialData: 'Anonymous',
                       builder: (context, snapshot) {
                         return _buildDrawerNickname(snapshot);
                       },
@@ -61,12 +67,18 @@ class AppDrawer extends StatelessWidget {
                         Icons.settings,
                       ),
                       onPressed: () {
-                        settingsBloc.add(ResetSettingsEvent());
+                        settingsBloc.add(InitializeSettingsEvent());
+                        Navigator.pushNamed(context,
+                          Router.settingsRoute, arguments: settingsBloc
+                        );
+                        /*
                         Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => SettingsView(settingsBloc: settingsBloc,),
                             ));
+
+                         */
                       },
                     ),
                   ),
@@ -74,6 +86,7 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ),
+          _buildCreateAccountButton(),
           _createDrawerItem(
               iconData: Icons.pages,
               text: 'Career',
@@ -106,6 +119,15 @@ class AppDrawer extends StatelessWidget {
                 Navigator.pop(context);
               }),
           _createDrawerItem(
+            iconData: Icons.touch_app,
+            text: 'Tutorial',
+            onTap: (){
+              //this caused issues
+              //BlocProvider.of<AuthBloc>(context).add(AuthRequestIntroEvent());
+              Navigator.of(context).pushNamed(Router.introRoute);
+            }
+          ),
+          _createDrawerItem(
               iconData: Icons.question_answer,
               text: 'About',
               onTap: () {
@@ -128,6 +150,29 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
+  Widget _buildCreateAccountButton(){
+    return FutureBuilder<bool>(
+      future: userRepository.isAnonymous(),
+      builder: (context, snapshot) {
+        return Visibility(
+          child: _createDrawerItem(
+            iconData: Icons.person_add,
+            text: 'Create Account',
+            onTap: (){
+              //Navigate to a custom RegisterPage?
+              //Also need to somehow save all information this user has created/updated - if any
+              //pass in widget to show what the user made that will be kept or deleted?
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => RegisterPage(),
+              ));
+            }
+          ),
+          visible: snapshot.hasData ? snapshot.data : false,
+        );
+    },
+    );
+  }
+
   Widget _buildAdminToolsDrawerItem() {
     return FutureBuilder<User>(
       future: userRepository.getCurrentUser(),
@@ -139,10 +184,12 @@ class AppDrawer extends StatelessWidget {
               onTap: () {
                 print('Admin Tools Tapped');
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => FirestoreTrackerView(),
+                  builder: (context) => AdminView(),
                 ));
               }),
-          visible: snapshot.hasData ? snapshot.data.isAdmin : false,
+          visible: snapshot.hasData && snapshot.data != null
+            ? snapshot.data.isAdmin
+            : false,
         );
       },
     );

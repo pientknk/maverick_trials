@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/trial.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_bloc.dart';
 import 'package:maverick_trials/features/trial/add_edit/ui/trial_add_edit_form.dart';
 
@@ -22,7 +21,6 @@ class _TrialAddEditViewState extends State<TrialAddEditView> {
       body: BlocProvider<TrialAddEditBloc>(
         create: (BuildContext context){
           return TrialAddEditBloc(
-            authBloc: BlocProvider.of<AuthenticationBloc>(context),
             trial: widget.trial,
           );
         },

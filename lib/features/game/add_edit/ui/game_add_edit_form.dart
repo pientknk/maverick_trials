@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/models/game.dart';
 import 'package:maverick_trials/features/game/add_edit/bloc/game_add_edit.dart';
+import 'package:maverick_trials/ui/widgets/theme/theme_icons.dart';
 
 class GameAddEditForm extends StatefulWidget {
   final Game game;
@@ -109,7 +110,7 @@ class _GameAddEditFormState extends State<GameAddEditForm> {
                                     //TODO: navigate to Game Runs with this gameID?
                                   },
                                   child: ListTile(
-                                    leading: Icon(Icons.text_fields),
+                                    leading: ThemeIcons.gamesIcon,
                                     title: Row(
                                       children: <Widget>[
                                         Expanded(child: Text('Game Runs')),
@@ -142,7 +143,7 @@ class _GameAddEditFormState extends State<GameAddEditForm> {
                                     //TODO: navigate to Trial Runs with this trialID?
                                   },
                                   child: ListTile(
-                                    leading: Icon(Icons.text_fields),
+                                    leading: ThemeIcons.trialsIcon,
                                     title: Row(
                                       children: <Widget>[
                                         Expanded(child: Text('Trials for this game')),

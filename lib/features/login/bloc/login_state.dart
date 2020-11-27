@@ -42,13 +42,8 @@ class LoginEmailVerificationRequiredState extends LoginState {
 }
 
 class LoginRegisterState extends LoginState {
-  final String email;
-  final String password;
-
-  LoginRegisterState({this.email, this.password}) : super([email, password]);
-
   @override
   String toString() {
-    return 'LoginRegisterState<$email, $password>';
+    return 'LoginRegisterState';
   }
 }

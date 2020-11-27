@@ -1,0 +1,1 @@
+enum AuthLoginType { success, requestNickname, requestIntro }

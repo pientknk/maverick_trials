@@ -10,6 +10,7 @@ import 'package:rxdart/rxdart.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   Settings settings = Settings();
+  FirebaseUser user;
   final FirebaseSettingsRepository settingsRepository = locator<FirebaseSettingsRepository>();
   final FirebaseUserRepository userRepository = locator<FirebaseUserRepository>();
 
@@ -46,19 +47,19 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       yield* _mapUpdateSettingsEventToState(event);
     }
 
-    if(event is ResetSettingsEvent) {
-      yield* _mapResetSettingsEventToState(event);
+    if(event is InitializeSettingsEvent) {
+      yield* _mapInitializeSettingsEventToState(event);
     }
   }
 
   Stream<SettingsState> _mapSettingsEventInitializeToState(SettingsEventInitialize event) async* {
     try{
-      FirebaseUser user = await userRepository.getAuthUser();
-      settings = await settingsRepository.get(user.uid);
+      user = await userRepository.getAuthUser();
+      settings = await settingsRepository.get(user?.uid);
       yield SettingsStateReady();
     }
-    catch(error){
-      String errorMsg = FirestoreExceptionHandler.tryGetMessage(error);
+    catch(error, st){
+      String errorMsg = FirestoreExceptionHandler.tryGetMessage(error, st);
       print(errorMsg);
       yield SettingsFailureState(errorMsg);
     }
@@ -69,12 +70,13 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       _setSettings(settings);
       await settingsRepository.update(settings);
 
-      print('saved Settings: ${settings.toString()}');
+      String photoURL = _avatarController.stream.value ?? user.photoUrl;
+      user = await userRepository.setFirebaseUserFields(firebaseUser: user, photoUrl: photoURL);
+
       yield SettingsStateReady();
     }
     catch(error, stacktrace){
-      print(stacktrace.toString());
-      yield SettingsFailureState(FirestoreExceptionHandler.tryGetMessage(error));
+      yield SettingsFailureState(FirestoreExceptionHandler.tryGetMessage(error, stacktrace));
     }
   }
 
@@ -88,16 +90,14 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
   }
 
-  Stream<SettingsState> _mapResetSettingsEventToState(ResetSettingsEvent event) async* {
+  Stream<SettingsState> _mapInitializeSettingsEventToState(InitializeSettingsEvent event) async* {
     onDarkModeChanged(settings.isDarkMode);
-    onAvatarChanged(settings.avatarLink);
+    onAvatarChanged(user.photoUrl);
 
     yield SettingsStateReady();
   }
 
   void _setSettings(Settings settings){
-    print('Set Settings: avatar: ${_avatarController.stream.value}');
-    settings.avatarLink = _avatarController.stream.value ?? settings.avatarLink;
     settings.isDarkMode = _isDarkModeController.stream.value ?? settings.isDarkMode;
   }
 }

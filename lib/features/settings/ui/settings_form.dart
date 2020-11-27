@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/features/settings/bloc/settings.dart';
 import 'package:maverick_trials/features/settings/ui/avatar_selection_view.dart';
@@ -33,7 +32,7 @@ class _SettingsFormState extends State<SettingsForm> {
                 width: 75,
                 child: AppAvatarStream(
                   stream: widget.settingsBloc.avatar,
-                  initialData: widget.settingsBloc.settings.avatarLink,
+                  initialData: widget.settingsBloc.user.photoUrl,
                 ),
               ),
             ),

@@ -49,7 +49,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
     if (event is RegisterSubmittedEvent) {
       yield RegisterState.loading();
       try {
-        bool success = await _userRepository.signUp(
+        bool success = await _userRepository.registerWithEmailAndPassword(
           nickname: event.nickname,
           email: event.email,
           password: event.password,
@@ -93,5 +93,11 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState>
     await Future.delayed(Duration(milliseconds: 500));
     nicknameTextController.value = nicknameTextController.value.copyWith(text: generatedWordPair);
     onNicknameChanged(generatedWordPair);
+  }
+
+  @override
+  void onTransition(Transition<RegisterEvent, RegisterState> transition) {
+    print(transition);
+    super.onTransition(transition);
   }
 }

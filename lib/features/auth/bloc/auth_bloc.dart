@@ -1,15 +1,18 @@
 import 'package:bloc/bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_settings_repository.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/email_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_event.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_state.dart';
+import 'package:maverick_trials/features/auth/auth_login_type.dart';
+import 'package:maverick_trials/features/auth/bloc/auth_event.dart';
+import 'package:maverick_trials/features/auth/bloc/auth_state.dart';
 import 'package:maverick_trials/locator.dart';
 import 'package:rxdart/rxdart.dart';
 
-class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState>
+class AuthBloc extends Bloc<AuthEvent, AuthState>
     with RequiredFieldValidator, RequiredLengthValidator, EmailValidator {
   final userRepository = locator<FirebaseUserRepository>();
   final settingsRepository = locator<FirebaseSettingsRepository>();
@@ -49,54 +52,68 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState>
           (0 == password.compareTo(confirmPassword)));
 
   @override
-  AuthenticationState get initialState => AuthenticationInitialState();
+  AuthState get initialState => AuthInitialState();
 
   @override
-  Stream<AuthenticationState> mapEventToState(
-      AuthenticationEvent event) async* {
-    if (event is AuthenticationStartedEvent) {
+  Stream<AuthState> mapEventToState(
+      AuthEvent event) async* {
+    if (event is AuthStartedEvent) {
       yield* _mapAuthenticationStartedToState();
     }
-    if (event is AuthenticationLoggedInEvent) {
-      yield* _mapAuthenticationLoggedInToState();
+
+    if (event is AuthLoggedInEvent) {
+      yield* _mapAuthenticationLoggedInToState(event);
     }
 
-    if (event is AuthenticationLoggedOutEvent) {
+    if(event is AuthRequestIntroEvent){
+      yield*  _mapAuthRequestIntroEventToState();
+    }
+
+    if (event is AuthLoggedOutEvent) {
       yield* _mapAuthenticationLoggedOutToState();
     }
   }
 
-  Stream<AuthenticationState> _mapAuthenticationStartedToState() async* {
-    final isSignedIn = await userRepository.isSignedIn();
-    final authUser = await userRepository.getAuthUser();
-    print('_mapAuthenticationStartedToState - isSignedIn: $isSignedIn, authUser: ${authUser?.email}');
-    if (isSignedIn && authUser != null) {
-      yield AuthenticationSuccessState(name: authUser.email);
+  Stream<AuthState> _mapAuthenticationStartedToState() async* {
+    User user = await userRepository.getCurrentUser();
+
+    bool isSignedIn = await userRepository.isSignedIn(user?.firebaseUser);
+    if (isSignedIn) {
+      yield getAuthSuccessState(user);
     }
     else {
-      yield AuthenticationFailureState(error: 'Unable to sign in');
+      yield AuthFailureState(error: 'Unable to sign in. No user session found.');
     }
   }
 
-  Stream<AuthenticationState> _mapAuthenticationLoggedInToState() async* {
-    final authUser = await userRepository.getAuthUser();
-    print('authUser: ${authUser.toString()}');
-    if(authUser != null){
-      yield AuthenticationSuccessState(name: authUser.email);
+  Stream<AuthState> _mapAuthenticationLoggedInToState(AuthLoggedInEvent event) async* {
+    User user = event?.user ?? await userRepository.getCurrentUser();
+    if(user == null){
+      FirebaseUser firebaseUser = await userRepository.getAuthUser();
+      if(firebaseUser.isAnonymous){
+        yield AuthSuccessState(authLoginType: AuthLoginType.success);
+      }
+      else{
+        yield AuthFailureState(error: 'Unauthorized User attemping to login.');
+      }
     }
     else{
-      yield AuthenticationFailureState(error: 'Unable to authenticate user');
+      yield getAuthSuccessState(user);
     }
   }
 
-  Stream<AuthenticationState> _mapAuthenticationLoggedOutToState() async* {
-    yield AuthenticationFailureState(error: 'User is logged out');
+  Stream<AuthState> _mapAuthenticationLoggedOutToState() async* {
+    yield AuthFailureState(error: 'User is logged out.');
     userRepository.signOut();
+  }
+
+  Stream<AuthState> _mapAuthRequestIntroEventToState() async* {
+    yield AuthSuccessState(authLoginType: AuthLoginType.requestIntro);
   }
 
   @override
   void onTransition(
-      Transition<AuthenticationEvent, AuthenticationState> transition) {
+      Transition<AuthEvent, AuthState> transition) {
     print(transition);
     super.onTransition(transition);
   }
@@ -108,5 +125,25 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState>
     await _passwordController.close();
     await _confirmPasswordController.close();
     return super.close();
+  }
+
+  AuthState getAuthSuccessState(User user){
+    if(user != null){
+      if(user.firebaseUser.isAnonymous){
+        return AuthSuccessState(authLoginType: AuthLoginType.success, user: user);
+      }
+      else if(!user.hasNickname){
+        return AuthSuccessState(authLoginType: AuthLoginType.requestNickname, user: user);
+      }
+      else if(!user.hasCompletedIntro){
+        return AuthSuccessState(authLoginType: AuthLoginType.requestIntro, user: user);
+      }
+      else{
+        return AuthSuccessState(authLoginType: AuthLoginType.success, user: user);
+      }
+    }
+    else{
+      return AuthFailureState(error: 'No user found');
+    }
   }
 }

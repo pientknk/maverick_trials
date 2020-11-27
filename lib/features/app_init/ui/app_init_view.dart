@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/features/app_init/bloc/app_init_bloc.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth_bloc.dart';
+import 'package:maverick_trials/features/auth/bloc/auth_bloc.dart';
 import 'package:maverick_trials/features/login/bloc/login_bloc.dart';
 import 'package:maverick_trials/features/login/bloc/login_event.dart';
 
@@ -25,7 +25,7 @@ class _ApplicationInitializationViewState
     return BlocProvider<LoginBloc>(
       create: (BuildContext context) {
         return LoginBloc(
-          authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
+          authBloc: BlocProvider.of<AuthBloc>(context),
         )..add(LoginInitialEvent());
       },
     );

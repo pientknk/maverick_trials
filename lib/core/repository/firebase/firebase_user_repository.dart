@@ -2,7 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:maverick_trials/core/caches/cache_manager.dart';
+import 'package:maverick_trials/core/caches/user_cache.dart';
 import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart';
+import 'package:maverick_trials/core/logging/logging.dart';
 import 'package:maverick_trials/core/models/base/search_item.dart';
 import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/repository.dart';
@@ -11,12 +14,21 @@ import 'package:maverick_trials/core/services/firestore_api.dart';
 import 'package:maverick_trials/locator.dart';
 
 class FirebaseUserRepository extends Repository<User> {
+  UserCache _userCache;
+
+  FirebaseUserRepository(){
+    _userCache = dbAPI.cacheManager.cacheMap[CacheType.user];
+  }
+
   @override
   Future<User> add(User data) async {
     DocumentSnapshot userSnapshot = await dbAPI.addDocument(
         FirestoreAPI.usersCollection, data.toJson(),
         docID: data.id);
-    return User().fromSnapshot(userSnapshot);
+    User user = User().fromSnapshot(userSnapshot);
+    user.firebaseUser = data.firebaseUser;
+
+    return user;
   }
 
   @override
@@ -28,7 +40,10 @@ class FirebaseUserRepository extends Repository<User> {
   Future<User> get(String id) async {
     DocumentSnapshot userSnapshot =
         await dbAPI.getDocumentById(FirestoreAPI.usersCollection, id);
-    return User().fromSnapshot(userSnapshot);
+    User user = User().fromSnapshot(userSnapshot);
+    _userCache.addData(user);
+
+    return user;
   }
 
   @override
@@ -67,41 +82,58 @@ class FirebaseUserRepository extends Repository<User> {
   @override
   Future<bool> update(User data) {
     return dbAPI.updateDocument(data.toJson(),
-        path: null, id: null, isIDUpdatable: false, reference: data.reference);
+      path: FirestoreAPI.usersCollection,
+      id: null,
+      isIDUpdatable: false,
+      reference: data.reference);
   }
 
   Future<FirebaseUser> getAuthUser() async {
     return authAPI.currentUser();
   }
 
-  Future<User> getUserByUID({@required String uid}) async {
-    QuerySnapshot querySnapshot = await dbAPI.getDocumentByField(
-      searchItem: SearchItem(
-        collectionName: FirestoreAPI.usersCollection,
-        fieldName: FirebaseUserRepository.dbFieldNames[UserFields.userUID],
-        value: uid,
-      ),
-    );
-
-    if (querySnapshot != null) {
-      DocumentSnapshot userSnapshot = querySnapshot.documents.first;
-      return User().fromSnapshot(userSnapshot);
+  Future<User> _getUser({
+    @required FirebaseUser firebaseUser,
+  }) async {
+    if(firebaseUser != null){
+      User user = firebaseUser.isAnonymous
+        ? User.newUser()
+        : await get(firebaseUser.displayName);
+      user.firebaseUser = firebaseUser;
+      return user;
     }
-
-    return null;
+    else{
+      return null;
+    }
   }
 
-  Future<User> getCurrentUser() async {
+  /// Gets the current firebase user and assigns it to the user model
+  /// Can return null if there is an issue getting the user,
+  /// i.e. if the firebase user is anonymous they will not have a user
+  /// Tries to retrieve from cache first, otherwise from firebase
+  Future<User> getCurrentUser({FirebaseUser firebaseUser}) async {
     try {
-      String currentUserUid = await authAPI.currentUserUid();
-      return await getUserByUID(uid: currentUserUid);
-    } catch (e) {
-      bool isAnonymous = await authAPI.isAnonymous();
-      if (!isAnonymous) {
-        FirestoreExceptionHandler.tryGetMessage(e);
+      User user = _userCache.tryGet();
+      if(user == null){
+        firebaseUser = firebaseUser ?? await authAPI.currentUser();
+        user = await _getUser(firebaseUser: firebaseUser);
       }
 
+      return user;
+    } catch (e, st) {
+      FirestoreExceptionHandler.tryGetMessage(e, st);
+      signOut();
       return null;
+    }
+  }
+
+  Future<bool> isAnonymous({FirebaseUser firebaseUser}) async {
+    try{
+      return await authAPI.isAnonymous(firebaseUser: firebaseUser);
+    }
+    catch(e, st){
+      FirestoreExceptionHandler.tryGetMessage(e, st);
+      return false;
     }
   }
 
@@ -109,22 +141,22 @@ class FirebaseUserRepository extends Repository<User> {
     await authAPI.resetPassword(email: email);
   }
 
-  Future<void> signInAnonymously() async {
+  Future<AuthResult> signInAnonymously() async {
     return authAPI.signInAnonymously();
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<AuthResult> signInWithGoogle() async {
     final GoogleSignInAccount googleAccount = await authAPI.googleSignIn();
     if (googleAccount != null) {
-      final AuthCredential credential = authAPI.getCredentialFromGoogleAuth(
+      AuthCredential credential = authAPI.getCredentialFromGoogleAuth(
           googleSignInAuthentication: await googleAccount.authentication);
-      return authAPI.signInWithCredentials(credential);
+      return await authAPI.signInWithCredentials(credential);
     }
 
     return Future.error('Google sign in cancelled');
   }
 
-  Future<void> signInWithCredentials(
+  Future<AuthResult> signInWithEmailAndPassword(
       {@required String email, @required String password}) async {
     return authAPI.signInWithEmailAndPassword(email: email, password: password);
   }
@@ -134,44 +166,78 @@ class FirebaseUserRepository extends Repository<User> {
   Future<String> get nickname async {
     final user = await getCurrentUser();
     if (user == null) {
-      bool isAnonymous = await authAPI.isAnonymous();
-      if (isAnonymous) {
+      bool userAnonymous = await isAnonymous();
+      if (userAnonymous) {
         return 'Anonymous';
       } else {
-        print(
-            "Error getting nickname: no current user and account isn't anonymous");
-        return '';
+        return 'Error';
       }
     } else {
-      return user.nickname;
+      return user.firebaseUser.displayName;
     }
   }
 
-  Future<bool> signUp(
+  Future<bool> registerWithEmailAndPassword(
       {@required String nickname,
       @required String email,
       @required String password}) async {
-    //use firebase auth user.displayname to set nickname?
+
     AuthResult authResult = await authAPI.createUserWithEmailAndPassword(
         email: email, password: password);
     if (authResult != null) {
-      await _createUser(authResult, nickname);
-      await locator<FirebaseSettingsRepository>().addNewUserSettings();
+      await createNewUser(authResult.user, nickname, sendEmailVerification: true);
       return true;
     }
 
     return false;
   }
 
-  Future<bool> isSignedIn() async {
-    final FirebaseUser currentUser = await authAPI.currentUser();
+  /// Creates a new user to go along with the recently created firebaseUser
+  /// This also creates all associated data initially needed for the user to navigate the app
+  Future<User> createNewUser(FirebaseUser firebaseUser, String nickname, {bool sendEmailVerification = false}) async {
+    firebaseUser = await setFirebaseUserFields(firebaseUser: firebaseUser, displayName: nickname);
 
-    return currentUser != null;
+    if(sendEmailVerification){
+      firebaseUser.sendEmailVerification();
+    }
+
+    User user = await _createUser(firebaseUser);
+    await locator<FirebaseSettingsRepository>().addNewUserSettings(user);
+
+    return user;
   }
 
-  Future<void> signIn(
-      {@required String email, @required String password}) async {
-    return authAPI.signInWithEmailAndPassword(email: email, password: password);
+  /// Updates the firebaseUser properties specified and returns an instance with those updates
+  /// If no firebaseUser is specified, the current session instance is retrieved.
+  Future<FirebaseUser> setFirebaseUserFields({FirebaseUser firebaseUser, String displayName, String photoUrl}) async {
+    if(firebaseUser == null){
+      firebaseUser = await getAuthUser();
+    }
+
+    await _updateFirebaseUserInfo(firebaseUser, displayName: displayName, photoUrl: photoUrl);
+
+    return await getAuthUser();
+  }
+
+  Future<void> _updateFirebaseUserInfo(FirebaseUser user, {String displayName, String photoUrl}) async {
+    UserUpdateInfo userUpdateInfo = UserUpdateInfo();
+    if(displayName != null){
+      userUpdateInfo.displayName = displayName;
+    }
+
+    if(photoUrl != null){
+      userUpdateInfo.photoUrl = photoUrl;
+    }
+
+    return user.updateProfile(userUpdateInfo);
+  }
+
+  Future<bool> isSignedIn(FirebaseUser firebaseUser) async {
+    if(firebaseUser == null){
+      firebaseUser = await authAPI.currentUser();
+    }
+
+    return firebaseUser != null;
   }
 
   Future<void> signOut() async {
@@ -181,21 +247,36 @@ class FirebaseUserRepository extends Repository<User> {
     ]);
   }
 
-  _createUser(AuthResult authResult, String nickname) async {
+  Future<User> _createUser(FirebaseUser firebaseUser) async {
     User user = User.newUser()
-      ..userUID = authResult.user.uid
-      ..nickname = nickname;
-    await add(user);
+      ..firebaseUser = firebaseUser;
+
+    _userCache.addData(user);
+
+    return await add(user);
   }
 
-  static Map<UserFields, String> dbFieldNames = <UserFields, String>{
-    UserFields.createdTime: 'ct',
-    UserFields.userUID: 'uid',
-    UserFields.nickname: 'n',
-    UserFields.firstName: 'fn',
-    UserFields.lastName: 'ln',
-    UserFields.friendIDs: 'fs',
-    UserFields.careerID: 'c',
-    UserFields.isAdmin: 'ad',
-  };
+  static Map<UserFields, String> dbFieldNames = Map.fromIterable(
+    UserFields.values,
+    key: (userField) => userField,
+    value: (userField) => _getDbFieldNames(userField)
+  );
+
+  static String _getDbFieldNames(UserFields userField){
+    switch (userField) {
+      case UserFields.createdTime:
+        return 'ct';
+      case UserFields.friendIDs:
+        return 'fs';
+      case UserFields.completedIntro:
+        return 'ci';
+      case UserFields.careerID:
+        return 'c';
+      case UserFields.isAdmin:
+        return 'ad';
+      default:
+        locator<Logging>().log(LogType.pretty, LogLevel.error, 'No UserField mapping found in dbFieldNames for $userField');
+        return null;
+    }
+  }
 }

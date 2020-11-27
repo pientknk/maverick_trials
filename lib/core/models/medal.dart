@@ -51,3 +51,8 @@ Map<String, dynamic> _medalToJson(Medal instance) => <String, dynamic>{
       'name': instance.name,
       'description': instance.description
     };
+
+enum MedalFields {
+  name,
+  description,
+}

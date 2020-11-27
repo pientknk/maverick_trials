@@ -5,10 +5,10 @@ import 'package:maverick_trials/core/exceptions/firestore_exception_handler.dart
 import 'package:maverick_trials/core/models/trial.dart';
 import 'package:maverick_trials/core/models/user.dart';
 import 'package:maverick_trials/core/repository/firebase/firebase_trial_repository.dart';
+import 'package:maverick_trials/core/repository/firebase/firebase_user_repository.dart';
 import 'package:maverick_trials/core/validation/length_validator.dart';
 import 'package:maverick_trials/core/validation/required_field_validator.dart';
 import 'package:maverick_trials/core/validation/required_length_validator.dart';
-import 'package:maverick_trials/features/authentication/bloc/auth.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_event.dart';
 import 'package:maverick_trials/features/trial/add_edit/bloc/trial_add_edit_state.dart';
 import 'package:maverick_trials/locator.dart';
@@ -19,9 +19,9 @@ const int kNameMaxLength = 30;
 
 class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     with RequiredFieldValidator, LengthValidator, RequiredLengthValidator {
-  final AuthenticationBloc authBloc;
   final Trial trial;
   final trialRepository = locator<FirebaseTrialRepository>();
+  final FirebaseUserRepository userRepository = locator<FirebaseUserRepository>();
 
   final formKey = GlobalKey<FormState>();
 
@@ -87,19 +87,17 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
     (a, b, c,) => true);
 
   Future<Trial> createNewTrial() async {
-    User user = await authBloc.userRepository.getCurrentUser();
-
+    User user = await userRepository.getCurrentUser();
     Trial trial = Trial.newTrial()
-      ..uID = user.userUID
-      ..creatorUserCareerID = user.nickname;
+      ..uID = user.firebaseUser?.uid
+      ..creatorUserCareerID = user.firebaseUser?.displayName;
 
     _setTrial(trial);
 
     return trial;
   }
 
-  TrialAddEditBloc({@required this.authBloc, @required this.trial})
-    : assert(authBloc != null){
+  TrialAddEditBloc({@required this.trial}) {
     onTrialTypeChanged(trial?.trialType);
   }
 
@@ -130,8 +128,7 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
         yield AddTrialStateSuccess(trial);
       }
       catch(error, stacktrace){
-        print(stacktrace);
-        yield FailureState(FirestoreExceptionHandler.tryGetMessage(error));
+        yield FailureState(FirestoreExceptionHandler.tryGetMessage(error, stacktrace));
       }
     }
     else{
@@ -152,8 +149,8 @@ class TrialAddEditBloc extends Bloc<TrialAddEditEvent, TrialAddEditState>
 
       yield EditTrialStateSuccess(trial);
     }
-    catch(error){
-      yield FailureState(FirestoreExceptionHandler.tryGetMessage(error));
+    catch(error, st){
+      yield FailureState(FirestoreExceptionHandler.tryGetMessage(error, st));
     }
   }
 

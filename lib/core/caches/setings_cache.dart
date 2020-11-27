@@ -19,7 +19,7 @@ class SettingsCache extends Cache<Settings> {
 
   @override
   void addData(Settings data) {
-    if(cachedList.length > 0){
+    if(data != null && cachedList.length > 0){
       cachedList.clear();
       cachedList.add(data);
     }

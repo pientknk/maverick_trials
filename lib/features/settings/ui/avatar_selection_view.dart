@@ -41,7 +41,7 @@ class _AvatarSelectionViewState extends State<AvatarSelectionView> {
             Container(
               child: AppAvatarStream(
                 stream: avatar,
-                initialData: widget.settingsBloc.settings.avatarLink,
+                initialData: widget.settingsBloc.user.photoUrl,
                 width: 100,
               ),
             ),

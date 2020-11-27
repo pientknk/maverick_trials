@@ -11,7 +11,7 @@ description: An app for creating fun games and competing with friends
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 0.0.1+1
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
@@ -37,7 +37,6 @@ dependencies:
   flutter_bloc: ^4.0.1
   equatable: ^0.2.0
   local_auth: ^0.6.2+3
-  flushbar: ^1.10.4
   google_sign_in: ^4.0.0
   font_awesome_flutter: ^8.8.1
   connectivity: ^0.4.9
@@ -46,6 +45,9 @@ dependencies:
   supercharged: ^1.10.0
   english_words: ^3.1.5
   polygon_clipper: ^1.0.2
+  catcher: ^0.3.20
+  logger_flutter: ^0.7.1
+  sentry: ">=3.0.0 <4.0.0"
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +63,7 @@ flutter:
 
   assets:
     - images/avatars/
+    - images/icons/
 
   #fonts:
   #  - fonts/

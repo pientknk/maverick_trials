@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:maverick_trials/features/authentication/bloc/device_auth_event.dart';
-import 'package:maverick_trials/features/authentication/bloc/device_auth_state.dart';
+import 'package:maverick_trials/features/auth/bloc/device_auth_event.dart';
+import 'package:maverick_trials/features/auth/bloc/device_auth_state.dart';
 
 class DeviceAuthenticationBloc
     extends Bloc<DeviceAuthenticationEvent, DeviceAuthenticationState> {

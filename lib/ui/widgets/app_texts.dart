@@ -90,13 +90,14 @@ class AccentThemeText extends StatelessWidget {
 class ButtonThemeText extends StatelessWidget {
   final String text;
   final bool isBold;
+  final double fontSize;
 
-  ButtonThemeText(this.text, {this.isBold = false});
+  ButtonThemeText(this.text, {this.isBold = false, this.fontSize = 15});
 
   @override
   Widget build(BuildContext context) {
     return Text(text.toUpperCase(),
-      style: TextStyle(fontSize: 15),
+      style: TextStyle(fontSize: fontSize),
       /*
       style: GoogleFonts.lato(
         textStyle: TextStyle(
